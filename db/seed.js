@@ -1,8 +1,28 @@
 const bcrypt = require('bcryptjs');
 
 function seedDB(db) {
+    // 1. ALWAYS RUN SUBJECT INSERTS FIRST (Runs even if users are already seeded)
+    try {
+        const insertSubject = db.prepare('INSERT OR IGNORE INTO subjects (code, name, faculty_id, section, year, department, target_attendance) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        
+        // Target your new timetable subjects explicitly
+        insertSubject.run('AD3501', 'Deep Learning', 4, 'A', 3, 'Computer Science', 85);
+        insertSubject.run('CW3551', 'Data and Information Security', 2, 'A', 3, 'Computer Science', 85);
+        insertSubject.run('CS3551', 'Distributed Computing', 3, 'A', 3, 'Computer Science', 85);
+        insertSubject.run('CCS334', 'Big Data Analytics', 1, 'A', 3, 'Computer Science', 85);
+        insertSubject.run('CCW331', 'Business Analytics', 1, 'A', 3, 'Computer Science', 85);
+        insertSubject.run('CCS335', 'Cloud Computing', 3, 'A', 3, 'Computer Science', 85);
+        insertSubject.run('AD3511', 'Deep Learning Laboratory', 4, 'A', 3, 'Computer Science', 85);
+        insertSubject.run('MX3083', 'Film Appreciation', 1, 'A', 3, 'Computer Science', 85);
+        
+        console.log("Timetable subjects successfully synced/verified in the database.");
+    } catch (err) {
+        console.error("Error inserting subjects:", err);
+    }
+
+    // 2. CHECK IF THE REST OF THE CORE DEMO DATA IS ALREADY SEEDED
     const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
-    if (userCount > 0) return; // DB already seeded
+    if (userCount > 0) return; // Rest of DB already seeded, stop here
 
     db.exec('BEGIN TRANSACTION');
     try {
@@ -50,8 +70,7 @@ function seedDB(db) {
             studentIds.push({ id: sId, name, username });
         }
 
-        // Subjects
-        const insertSubject = db.prepare('INSERT INTO subjects (code, name, faculty_id, section, year, department, target_attendance) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        // Standard Demo Subjects
         const sub1 = insertSubject.run('CS401', 'Algorithmic Analysis', f1_id, 'A', 3, 'Computer Science', 85).lastInsertRowid;
         const sub2 = insertSubject.run('CS302', 'Database Systems', f2_id, 'A', 3, 'Computer Science', 85).lastInsertRowid;
         const sub3 = insertSubject.run('CS415', 'Neural Networks', f3_id, 'A', 3, 'Computer Science', 85).lastInsertRowid;
@@ -105,25 +124,20 @@ function seedDB(db) {
             d.setDate(d.getDate() + 1);
         }
 
-        // Alex Johnson attendance targets per subject (out of 25):
-        // CS401: 24/25 = 96%, MATH201: 22/25 = 88%, PHYS102: 19/25 = 76%, ENG105: 23/25 = 92%
-        // CS302: 24/25, CS415: 23/25, CS101: 24/25
-        // Overall: (24+24+23+24+22+19+23)/175 = 159/175 = 90.8% ≈ 91%
         const alexTargets = {
-            [sub1]: { present: 24, absent: 1 },  // CS401: 96%
-            [sub2]: { present: 24, absent: 1 },  // CS302: 96%
-            [sub3]: { present: 23, absent: 2 },  // CS415: 92%
-            [sub4]: { present: 24, absent: 1 },  // CS101: 96%
-            [sub5]: { present: 22, absent: 3 },  // MATH201: 88%
-            [sub6]: { present: 19, absent: 6 },  // PHYS102: 76%
-            [sub7]: { present: 23, absent: 2 },  // ENG105: 92%
+            [sub1]: { present: 24, absent: 1 },
+            [sub2]: { present: 24, absent: 1 },
+            [sub3]: { present: 23, absent: 2 },
+            [sub4]: { present: 24, absent: 1 },
+            [sub5]: { present: 22, absent: 3 },
+            [sub6]: { present: 19, absent: 6 },
+            [sub7]: { present: 23, absent: 2 },
         };
 
-        // Shortage students attendance rates
         const shortageRates = {
-            '20248831': 0.62,  // Robert Jameson - 62% CRITICAL
-            '20241102': 0.68,  // Amrit Kaur - 68% WARNING
-            '20249045': 0.71,  // Marcus Vance - 71% WARNING
+            '20248831': 0.62,
+            '20241102': 0.68,
+            '20249045': 0.71,
         };
 
         for (let i = 0; i < dates.length; i++) {
@@ -134,17 +148,13 @@ function seedDB(db) {
                     let status;
 
                     if (student.username === '20240982') {
-                        // Alex: deterministic based on targets
                         const target = alexTargets[subId];
                         status = i < target.present ? 'P' : 'A';
-                        // Add some Late entries for variety
                         if (status === 'P' && i === 3) status = 'L';
                         if (status === 'P' && i === 10) status = 'L';
                     } else if (shortageRates[student.username]) {
-                        // Shortage students
                         status = i < Math.floor(shortageRates[student.username] * 25) ? 'P' : 'A';
                     } else {
-                        // Normal students: ~90% attendance
                         status = i < 22 ? 'P' : (i < 23 ? 'L' : 'A');
                     }
 
@@ -165,14 +175,12 @@ function seedDB(db) {
         const david = studentIds.find(s => s.username === '20CS004');
         const elena = studentIds.find(s => s.username === '20CS005');
 
-        // Lab Task 4 tracking
         insertAssTrack.run(a1, aaron.id, 'COMPLETED');
         insertAssTrack.run(a1, bianca.id, 'PENDING');
         insertAssTrack.run(a1, caleb.id, 'COMPLETED');
         insertAssTrack.run(a1, david.id, 'PENDING');
         if (elena) insertAssTrack.run(a1, elena.id, 'PENDING');
 
-        // Lab Task 3 tracking
         insertAssTrack.run(a2, aaron.id, 'COMPLETED');
         insertAssTrack.run(a2, bianca.id, 'COMPLETED');
         insertAssTrack.run(a2, caleb.id, 'COMPLETED');
@@ -186,7 +194,7 @@ function seedDB(db) {
         insertLeave.run(alex.id, 'Family Emergency', '2024-04-02', '2024-04-02', 'Urgent family matter requiring immediate attention', 'PENDING');
 
         db.exec('COMMIT');
-        console.log('Database seeded successfully with demo data');
+        console.log('Database seeded successfully with core data.');
     } catch (error) {
         db.exec('ROLLBACK');
         console.error('Seed error:', error);
@@ -194,25 +202,3 @@ function seedDB(db) {
 }
 
 module.exports = { seedDB };
-const missingSubjects = [
-  { code: 'AD3501', name: 'Deep Learning' },
-  { code: 'CW3551', name: 'Data and Information Security' },
-  { code: 'CS3551', name: 'Distributed Computing' },
-  { code: 'CCS334', name: 'Big Data Analytics' },
-  { code: 'CCW331', name: 'Business Analytics' },
-  { code: 'CCS335', name: 'Cloud Computing' },
-  { code: 'AD3511', name: 'Deep Learning Laboratory' },
-  { code: 'MX3083', name: 'Film Appreciation' }
-];
-
-// Assuming your database instance is named 'db' inside seed.js:
-const insertStmt = db.prepare(`
-  INSERT OR IGNORE INTO subjects (subject_code, subject_name) 
-  VALUES (?, ?)
-`);
-
-missingSubjects.forEach(sub => {
-  insertStmt.run(sub.code, sub.name);
-});
-
-console.log("Missing subjects seeded successfully!");
