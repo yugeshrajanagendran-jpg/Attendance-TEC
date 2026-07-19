@@ -194,3 +194,25 @@ function seedDB(db) {
 }
 
 module.exports = { seedDB };
+const missingSubjects = [
+  { code: 'AD3501', name: 'Deep Learning' },
+  { code: 'CW3551', name: 'Data and Information Security' },
+  { code: 'CS3551', name: 'Distributed Computing' },
+  { code: 'CCS334', name: 'Big Data Analytics' },
+  { code: 'CCW331', name: 'Business Analytics' },
+  { code: 'CCS335', name: 'Cloud Computing' },
+  { code: 'AD3511', name: 'Deep Learning Laboratory' },
+  { code: 'MX3083', name: 'Film Appreciation' }
+];
+
+// Assuming your database instance is named 'db' inside seed.js:
+const insertStmt = db.prepare(`
+  INSERT OR IGNORE INTO subjects (subject_code, subject_name) 
+  VALUES (?, ?)
+`);
+
+missingSubjects.forEach(sub => {
+  insertStmt.run(sub.code, sub.name);
+});
+
+console.log("Missing subjects seeded successfully!");
