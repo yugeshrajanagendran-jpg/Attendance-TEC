@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOD Dashboard | Attendance @TEC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        :root {
+            --navy-primary: #0a1628;
+            --navy-secondary: #1a3a5c;
+            --blue-accent: #2563eb;
+            --light-blue: #dbeafe;
+            --bg-color: #f5f6fa;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0a1628;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --success-text: #059669;
+            --success-bg: #d1fae5;
+            --warning-text: #d97706;
+            --warning-bg: #fef3c7;
+            --danger-text: #dc2626;
+            --danger-bg: #fee2e2;
+            --sidebar-width: 200px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--navy-primary);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            left: 0;
+            top: 0;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-header p {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .nav-links {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item .material-icons-outlined {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: white;
+            color: var(--navy-primary);
+            border-left-color: var(--blue-accent);
+        }
+
+        .sidebar-bottom {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            color: #ef4444;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+        
+        .logout-btn .material-icons-outlined {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .top-header {
+            height: 70px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .header-left h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header-center {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 32px;
+            position: relative;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 14px;
+            background-color: var(--bg-color);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-bar:focus {
+            border-color: var(--blue-accent);
+            box-shadow: 0 0 0 3px var(--light-blue);
+        }
+
+        .header-center .material-icons-outlined {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 20px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .header-tabs {
+            display: flex;
+            gap: 24px;
+        }
+
+        .tab {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            position: relative;
+            padding-bottom: 24px;
+            top: 12px;
+        }
+
+        .tab.active {
+            color: var(--blue-accent);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--blue-accent);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-secondary);
+        }
+
+        .header-icons .material-icons-outlined {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .header-icons .material-icons-outlined:hover {
+            color: var(--navy-primary);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--navy-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Page Content */
+        .page-container {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 24px;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .page-title h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--navy-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--bg-color);
+        }
+
+        .btn-primary {
+            background-color: var(--navy-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--navy-secondary);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-text);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* Charts Section */
+        .charts-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            flex: 7;
+        }
+
+        .workload-card {
+            flex: 3;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+        }
+        
+        .badge-warning {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+        }
+        
+        .badge-danger {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+        }
+
+        .chart-container {
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding-top: 20px;
+            gap: 12px;
+            position: relative;
+        }
+        
+        .chart-bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            gap: 8px;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .chart-bar {
+            width: 100%;
+            background-color: var(--light-blue);
+            border-radius: 4px 4px 0 0;
+            min-height: 10px;
+            transition: height 0.5s ease-out;
+            position: relative;
+        }
+        
+        .chart-bar:hover::after {
+            content: attr(data-value);
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--navy-primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        .chart-bar.darker {
+            background-color: #93c5fd;
+        }
+        
+        .chart-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .workload-stat {
+            margin-bottom: 24px;
+        }
+
+        .workload-stat-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .workload-stat-val {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .progress-track {
+            height: 8px;
+            background-color: var(--bg-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--blue-accent);
+            border-radius: 4px;
+        }
+
+        .quote-box {
+            background-color: var(--bg-color);
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid var(--blue-accent);
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Class Overview */
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .class-card {
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: white;
+        }
+
+        .class-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .course-pill {
+            background-color: var(--bg-color);
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--navy-secondary);
+        }
+
+        .class-card h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+        
+        .class-instructor {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .class-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .class-att-val {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .class-att-val.good { color: var(--success-text); }
+        .class-att-val.warn { color: var(--warning-text); }
+        .class-att-val.danger { color: var(--danger-text); }
+
+        .class-students {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Bottom Section */
+        .bottom-row {
+            display: flex;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .recent-card {
+            flex: 6.5;
+        }
+
+        .alerts-card {
+            flex: 3.5;
+        }
+        
+        .alerts-card .card-title {
+            color: var(--danger-text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .faculty-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .faculty-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .alert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left-width: 4px;
+        }
+        
+        .alert-item.critical {
+            border-left-color: var(--danger-text);
+        }
+        
+        .alert-item.warning {
+            border-left-color: var(--warning-text);
+        }
+
+        .alert-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .alert-info p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .alert-val {
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .alert-item.critical .alert-val { color: var(--danger-text); }
+        .alert-item.warning .alert-val { color: var(--warning-text); }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background-color: var(--navy-primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .spinner {
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top: 3px solid var(--blue-accent);
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>ATTENDANCE <span style="color: var(--text-muted); font-weight: 300;">@TEC</span></h1>
+            <p>Reliable Proctor System</p>
+        </div>
+        <nav class="nav-links">
+            <a href="admin.html" class="nav-item active">
+                <span class="material-icons-outlined">dashboard</span>
+                Dashboard
+            </a>
+            <a href="admin-upload.html" class="nav-item">
+                <span class="material-icons-outlined">groups</span>
+                Roster
+            </a>
+            <a href="admin-modify.html" class="nav-item">
+                <span class="material-icons-outlined">fact_check</span>
+                Attendance
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-outlined">assessment</span>
+                Reports
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-outlined">calendar_today</span>
+                Schedules
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-outlined">settings</span>
+                Settings
+            </a>
+        </nav>
+        <div class="sidebar-bottom">
+            <a href="#" class="nav-item" style="padding-left: 0;">
+                <span class="material-icons-outlined">help_outline</span>
+                Help Center
+            </a>
+            <a href="#" class="logout-btn" onclick="logout(event)">
+                <span class="material-icons-outlined">logout</span>
+                Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <h2>Department Oversight</h2>
+            </div>
+            <div class="header-center">
+                <span class="material-icons-outlined">search</span>
+                <input type="text" class="search-bar" placeholder="Search faculty, classes...">
+            </div>
+            <div class="header-right">
+                <div class="header-tabs">
+                    <a href="#" class="tab active">Overview</a>
+                    <a href="#" class="tab">Analytics</a>
+                    <a href="#" class="tab">Admin Panel</a>
+                </div>
+                <div class="header-icons">
+                    <span class="material-icons-outlined">notifications</span>
+                    <span class="material-icons-outlined">schedule</span>
+                    <div class="avatar">H</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-container">
+            <div class="page-header">
+                <div class="page-title">
+                    <p>WELCOME BACK, HOD</p>
+                    <h1>Faculty of Applied Sciences</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="exportExcel()">
+                        <span class="material-icons-outlined">download</span> Export Excel
+                    </button>
+                    <button class="btn btn-primary">
+                        <span class="material-icons-outlined">picture_as_pdf</span> Export PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <div class="card-title">Departmental Attendance Trends</div>
+                        <div class="badge badge-success">+2.4% vs Last Week</div>
+                    </div>
+                    <div class="chart-container" id="trends-chart">
+                        <div class="spinner"></div>
+                        <!-- Chart bars injected via JS -->
+                    </div>
+                </div>
+
+                <div class="card workload-card">
+                    <div class="card-title" style="margin-bottom: 20px;">Faculty Workload</div>
+                    
+                    <div id="dashboard-stats">
+                        <div class="spinner"></div>
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <div class="quote-box" style="margin-top: 24px;">
+                        "System optimized: 3 vacant slots detected in Friday labs."
+                    </div>
+                </div>
+            </div>
+
+            <!-- Class Overview -->
+            <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span class="material-icons-outlined">grid_view</span>
+                <h2 style="font-size: 18px; font-weight: 600;">Class Overview</h2>
+            </div>
+            
+            <div class="classes-grid" id="classes-container">
+                <div class="spinner" style="grid-column: 1 / -1;"></div>
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Bottom Row -->
+            <div class="bottom-row">
+                <div class="card recent-card">
+                    <div class="card-header">
+                        <div class="card-title">Recent Faculty Entries</div>
+                        <a href="#" style="color: var(--blue-accent); text-decoration: none; font-size: 14px; font-weight: 500;">View All Entries</a>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table id="recent-entries-table">
+                            <thead>
+                                <tr>
+                                    <th>Faculty Name</th>
+                                    <th>Class / Subject</th>
+                                    <th>Timestamp</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="4" style="text-align: center;"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card alerts-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="material-icons-outlined">warning</span> Shortage Alerts
+                        </div>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                        students have fallen below the mandatory 75% attendance threshold.
+                    </p>
+                    
+                    <div id="alerts-container">
+                        <div class="spinner"></div>
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <button class="btn btn-danger" style="width: 100%; justify-content: center; margin-top: 16px;" onclick="notifyGuardians()">
+                        <span class="material-icons-outlined">notifications_active</span> Notify All Guardians
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        async function init() {
+            try {
+                const auth = await fetch('/api/auth/me');
+                if (!auth.ok) return window.location.href = '/index.html';
+            } catch (e) {
+                return window.location.href = '/index.html';
+            }
+            
+            await Promise.all([loadTrends(), loadClasses(), loadRecentEntries(), loadAlerts(), loadDashboard()]);
+        }
+
+        async function loadTrends() {
+            const container = document.getElementById('trends-chart');
+            try {
+                const res = await fetch('/api/admin/trends');
+                if(!res.ok) throw new Error();
+                const data = await res.json();
+
+                container.innerHTML = '';
+                data.forEach((item, index) => {
+                    const isLastTwo = index >= data.length - 2;
+                    container.innerHTML += `
+                        <div class="chart-bar-wrapper">
+                            <div class="chart-bar ${isLastTwo ? 'darker' : ''}" style="height: ${item.value}%" data-value="${item.value}%"></div>
+                            <div class="chart-label">${item.label}</div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                container.innerHTML = '<p style="color:red; font-size:12px;">Error loading chart</p>';
+            }
+        }
+
+        async function loadClasses() {
+            const container = document.getElementById('classes-container');
+            try {
+                const res = await fetch('/api/admin/classes');
+                if(!res.ok) throw new Error();
+                const data = await res.json();
+
+                container.innerHTML = '';
+                data.forEach(cls => {
+                    let attClass = cls.attendance_pct >= 85 ? 'good' : (cls.attendance_pct >= 75 ? 'warn' : 'danger');
+                    container.innerHTML += `
+                        <div class="class-card">
+                            <div class="class-card-header">
+                                <span class="course-pill">${cls.code}</span>
+                                <a href="#" style="color: var(--text-muted);"><span class="material-icons-outlined" style="font-size: 18px;">open_in_new</span></a>
+                            </div>
+                            <h3>${cls.name}</h3>
+                            <div class="class-instructor">${cls.instructor}</div>
+                            <div class="class-stats">
+                                <div class="class-att-val ${attClass}">${cls.attendance_pct}%</div>
+                                <div class="class-students">${cls.student_count} students</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                container.innerHTML = '<p style="color:red; font-size:12px;">Error loading classes</p>';
+            }
+        }
+
+        async function loadRecentEntries() {
+            const tbody = document.querySelector('#recent-entries-table tbody');
+            try {
+                const res = await fetch('/api/admin/recent-entries');
+                if(!res.ok) throw new Error();
+                const data = await res.json();
+
+                tbody.innerHTML = '';
+                data.forEach(entry => {
+                    let badgeClass = entry.status === 'Completed' ? 'badge-success' : 'badge-warning';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>
+                                <div class="faculty-cell">
+                                    <div class="faculty-avatar" style="background-color: ${entry.color};">${entry.initials}</div>
+                                    <span style="font-weight: 500;">${entry.faculty_name}</span>
+                                </div>
+                            </td>
+                            <td style="color: var(--text-secondary);">${entry.class_subject}</td>
+                            <td style="color: var(--text-muted); font-size: 13px;">${entry.timestamp}</td>
+                            <td><span class="badge ${badgeClass}">${entry.status}</span></td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="4" style="color:red; text-align:center;">Error loading entries</td></tr>';
+            }
+        }
+
+        let alertStudentIds = [];
+
+        async function loadAlerts() {
+            const container = document.getElementById('alerts-container');
+            try {
+                const res = await fetch('/api/admin/alerts');
+                if(!res.ok) throw new Error();
+                const data = await res.json();
+
+                alertStudentIds = data.map(a => a.student_id);
+                container.innerHTML = '';
+                data.forEach(alert => {
+                    let badgeClass = alert.level === 'critical' ? 'badge-danger' : 'badge-warning';
+                    let label = alert.level === 'critical' ? 'CRITICAL' : 'WARNING';
+                    container.innerHTML += `
+                        <div class="alert-item ${alert.level}">
+                            <div class="alert-info">
+                                <h4>${alert.student_name}</h4>
+                                <p>ID: ${alert.reg_no} <span class="badge ${badgeClass}" style="margin-left: 8px; font-size: 10px;">${label}</span></p>
+                            </div>
+                            <div class="alert-val">${alert.percentage}%</div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                container.innerHTML = '<p style="color:red; font-size:12px;">Error loading alerts</p>';
+            }
+        }
+
+        async function loadDashboard() {
+            const container = document.getElementById('dashboard-stats');
+            try {
+                const res = await fetch('/api/admin/dashboard');
+                if(!res.ok) throw new Error();
+                const data = await res.json();
+
+                let lecPercent = (data.faculty_count / data.total_faculty) * 100;
+                let loadPercent = (data.avg_weekly_load / 24) * 100;
+
+                container.innerHTML = `
+                    <div class="workload-stat">
+                        <div class="workload-stat-header">
+                            <span>Active Lecturers</span>
+                            <span class="workload-stat-val">${data.faculty_count} / ${data.total_faculty}</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-bar" style="width: ${lecPercent}%"></div>
+                        </div>
+                    </div>
+                    <div class="workload-stat">
+                        <div class="workload-stat-header">
+                            <span>Average Weekly Load</span>
+                            <span class="workload-stat-val">${data.avg_weekly_load} Hrs</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-bar" style="width: ${loadPercent}%"></div>
+                        </div>
+                    </div>
+                `;
+                const quoteBox = document.querySelector('.quote-box');
+                if (quoteBox && data.system_message) {
+                    quoteBox.textContent = `"\${data.system_message}"`;
+                }
+            } catch (e) {
+                container.innerHTML = '<p style="color:red; font-size:12px;">Error loading stats</p>';
+            }
+        }
+
+        async function exportExcel() {
+            showToast("Exporting Excel file...");
+            window.location.href = '/api/admin/export?format=xlsx';
+        }
+
+        async function notifyGuardians() {
+            if (alertStudentIds.length === 0) {
+                showToast("No guardians to notify", "info");
+                return;
+            }
+            showToast("Notifying guardians...", "info");
+            try {
+                const res = await fetch('/api/admin/notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_ids: alertStudentIds })
+                });
+                if (!res.ok) throw new Error();
+                showToast("Guardians notified successfully!", "success");
+            } catch (e) {
+                showToast("Failed to notify guardians", "error");
+            }
+        }
+
+        async function logout(e) {
+            e.preventDefault();
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+            } catch(e) {}
+            window.location.href = '/index.html';
+        }
+
+        function showToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            
+            let icon = 'check_circle';
+            if (type === 'error') icon = 'error';
+            if (type === 'info') icon = 'info';
+            
+            toast.innerHTML = `<span class="material-icons-outlined">\${icon}</span> \${message}`;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

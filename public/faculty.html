@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Dashboard - Attendance @TEC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        :root {
+            --navy-primary: #0a1628;
+            --navy-secondary: #1a3a5c;
+            --blue-accent: #2563eb;
+            --light-blue: #dbeafe;
+            --background: #f5f6fa;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-primary: #0a1628;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --warning: #d97706;
+            --warning-light: #fef3c7;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --info: #0ea5e9;
+            --info-light: #e0f2fe;
+            --purple: #8b5cf6;
+            --purple-light: #ede9fe;
+            --gray-light: #f1f5f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 200px;
+            background-color: var(--navy-primary);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .nav-links {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: var(--navy-primary);
+            background-color: var(--card-bg);
+        }
+
+        .nav-item.active {
+            border-left: 3px solid var(--blue-accent);
+        }
+
+        .nav-bottom {
+            padding: 20px 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-bottom .nav-item.logout {
+            color: #ef4444;
+        }
+        
+        .nav-bottom .nav-item.logout:hover {
+            background-color: var(--danger-light);
+        }
+
+        /* Main Area */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            height: 64px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .header-tabs {
+            display: flex;
+            gap: 24px;
+            height: 100%;
+        }
+
+        .header-tab {
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            position: relative;
+            top: 1px;
+            transition: color 0.2s;
+        }
+
+        .header-tab.active {
+            color: var(--blue-accent);
+            border-bottom: 2px solid var(--blue-accent);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .icon-btn:hover {
+            color: var(--navy-primary);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--blue-accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--navy-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--navy-secondary);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--gray-light);
+        }
+        
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+            padding: 12px;
+            margin-top: 16px;
+        }
+
+        /* Top Section Bar */
+        .info-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            background-color: var(--card-bg);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--blue-accent);
+        }
+
+        .section-text {
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            background-color: var(--gray-light);
+            border-radius: 8px;
+            border: 1px solid transparent;
+        }
+
+        /* Two Column Layout */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 60% calc(40% - 24px);
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 12px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .student-name-col {
+            font-weight: 500;
+        }
+        
+        .reg-col {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Attendance Radio Buttons */
+        .att-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .att-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background-color: white;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .att-btn:hover {
+            background-color: var(--gray-light);
+        }
+
+        .att-btn.selected[data-type="P"] {
+            background-color: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .att-btn.selected[data-type="A"], .att-btn.selected[data-type="L"] {
+            background-color: var(--warning);
+            color: white;
+            border-color: var(--warning);
+        }
+
+        .att-btn.selected[data-type="OD"] {
+            background-color: var(--info);
+            color: white;
+            border-color: var(--info);
+        }
+
+        .att-btn.selected[data-type="ML"] {
+            background-color: var(--purple);
+            color: white;
+            border-color: var(--purple);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .status-badge.unmarked { background-color: var(--gray-light); color: var(--text-secondary); }
+        .status-badge.present { background-color: var(--success-light); color: var(--success); }
+        .status-badge.absent { background-color: var(--danger-light); color: var(--danger); }
+        .status-badge.late { background-color: var(--warning-light); color: var(--warning); }
+        .status-badge.od { background-color: var(--info-light); color: var(--info); }
+        .status-badge.ml { background-color: var(--purple-light); color: var(--purple); }
+
+        /* Right Column Specifics */
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Today's Load */
+        .load-card {
+            background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-secondary) 100%);
+            color: white;
+            border: none;
+        }
+        
+        .load-card .card-title {
+            color: white;
+        }
+
+        .load-stats {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .big-number {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .load-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .load-detail-item {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        
+        .load-detail-item strong {
+            color: white;
+        }
+
+        /* Assignment Tracker */
+        .assignment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .assignment-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .assn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .assn-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: var(--info-light);
+            color: var(--info);
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .assn-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .assn-progress {
+            margin: 12px 0;
+            height: 6px;
+            background-color: var(--gray-light);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .assn-progress-bar {
+            height: 100%;
+            background-color: var(--blue-accent);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .assn-students {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 12px;
+        }
+        
+        .assn-student-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            padding: 4px 0;
+        }
+        
+        .assn-student-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .dot.completed { background-color: var(--success); }
+        .dot.pending { background-color: var(--warning); }
+        
+        .status-toggle {
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: white;
+            transition: all 0.2s;
+        }
+        
+        .status-toggle:hover {
+            background-color: var(--gray-light);
+        }
+
+        /* New Assignment Button */
+        .btn-dashed {
+            width: 100%;
+            padding: 16px;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-dashed:hover {
+            border-color: var(--blue-accent);
+            color: var(--blue-accent);
+            background-color: var(--light-blue);
+        }
+
+        /* Toast Container */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background-color: var(--card-bg);
+            border-left: 4px solid var(--success);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 16px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-width: 300px;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+        
+        .toast-icon {
+            color: var(--success);
+        }
+        
+        .toast.error .toast-icon {
+            color: var(--danger);
+        }
+
+        .toast-content h4 {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        
+        .toast-content p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(10, 22, 40, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+        
+        .modal-overlay.show .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1><span class="material-icons-outlined">school</span> @TEC</h1>
+            <p>Reliable Proctor System</p>
+        </div>
+        <nav class="nav-links">
+            <a class="nav-item active" onclick="switchTab('overview')">
+                <span class="material-icons-outlined">dashboard</span>
+                Dashboard
+            </a>
+            <a class="nav-item" onclick="showComingSoon('Roster')">
+                <span class="material-icons-outlined">groups</span>
+                Roster
+            </a>
+            <a class="nav-item" onclick="showComingSoon('Attendance Logs')">
+                <span class="material-icons-outlined">fact_check</span>
+                Attendance
+            </a>
+            <a class="nav-item" onclick="switchTab('alerts')">
+                <span class="material-icons-outlined">assessment</span>
+                Shortage Alerts
+            </a>
+            <a class="nav-item" onclick="showComingSoon('Schedules')">
+                <span class="material-icons-outlined">calendar_today</span>
+                Schedules
+            </a>
+            <a class="nav-item" onclick="switchTab('settings')">
+                <span class="material-icons-outlined">settings</span>
+                Settings
+            </a>
+        </nav>
+        <div class="nav-bottom">
+            <a class="nav-item" onclick="openHelpModal()">
+                <span class="material-icons-outlined">help_outline</span>
+                Help Center
+            </a>
+            <a class="nav-item logout" onclick="logout()">
+                <span class="material-icons-outlined">logout</span>
+                Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-title" id="page-header-title">Faculty Dashboard</div>
+            <div class="header-tabs">
+                <div class="header-tab active" id="tab-btn-overview" onclick="switchTab('overview')">Overview</div>
+                <div class="header-tab" id="tab-btn-alerts" onclick="switchTab('alerts')">Shortage Alerts</div>
+                <div class="header-tab" id="tab-btn-settings" onclick="switchTab('settings')">Settings</div>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" onclick="toggleNotifications()" style="position:relative;">
+                    <span class="material-icons-outlined">notifications</span>
+                    <span id="notif-badge" style="position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; border-radius:50%; font-size:9px; padding:2px 5px; display:none;">0</span>
+                </button>
+                <button class="icon-btn" onclick="showComingSoon('Schedule Details')"><span class="material-icons-outlined">schedule</span></button>
+                <button class="icon-btn" onclick="openHelpModal()"><span class="material-icons-outlined">help_outline</span></button>
+                <div class="user-profile">
+                    <div class="avatar" id="avatar-initials">F</div>
+                    <span class="user-name" id="faculty-name">Faculty Name</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notifications Panel -->
+        <div id="notifications-panel" style="position: absolute; right: 80px; top: 72px; width: 320px; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 1000;">
+            <div style="padding: 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 600;">
+                <span>Notifications</span>
+                <button class="btn" style="height: auto; padding: 4px 8px; font-size: 11px; background: transparent; color: var(--blue-accent);" onclick="markAllNotificationsRead()">Mark all read</button>
+            </div>
+            <div id="notifications-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column;">
+                <div style="padding: 16px; text-align: center; color: var(--text-muted);">No new notifications</div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <main class="content">
+            <!-- Overview Tab -->
+            <div id="tab-overview" class="faculty-tab-section">
+                <!-- Top Info Bar -->
+                <div class="card info-bar" style="margin-bottom: 24px;">
+                    <div class="form-group">
+                        <label>Academic Date</label>
+                        <input type="date" class="form-control" id="academic-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Class Hour</label>
+                        <select class="form-control" id="class-hour">
+                            <option value="1">Hour 1 (08:30 - 09:20)</option>
+                            <option value="2">Hour 2 (09:20 - 10:10)</option>
+                            <option value="3">Hour 3 (10:30 - 11:20)</option>
+                            <option value="4">Hour 4 (11:20 - 12:10)</option>
+                            <option value="5">Hour 5 (13:00 - 13:50)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <select class="form-control" id="subject-select" onchange="handleSubjectChange()">
+                            <!-- Options populated via JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Section</label>
+                        <div class="section-text" id="section-info">A - CSE</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="downloadExcel()">
+                        <span class="material-icons-outlined">download</span>
+                        Export Roster
+                    </button>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div class="grid-layout">
+                    <!-- Left Column -->
+                    <div class="left-col">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">Student List</div>
+                                    <div class="card-subtitle" id="marking-stats">Total Students: 0 | Marking: 0/0 Complete</div>
+                                </div>
+                                <button class="btn btn-outline" onclick="markAllPresent()">Mark All Present</button>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Reg. No</th>
+                                            <th>Student Name</th>
+                                            <th>Attendance Action</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="student-table-body">
+                                        <!-- Students rendered via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <button class="btn btn-primary btn-full" onclick="saveAttendance()">Save Attendance</button>
+                            <button id="whatsapp-attendance-btn" class="btn" style="background:#25d366; color:white; border:none; display:flex; align-items:center; gap:6px; width:100%; justify-content:center; margin-top:8px;" onclick="sendAttendanceToWhatsApp()">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                Share Attendance via WhatsApp
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="right-col">
+                        <!-- Today's Load -->
+                        <div class="card load-card">
+                            <div class="card-title">Today's Load</div>
+                            <div class="load-stats">
+                                <div class="big-number" id="sessions-count">0</div>
+                                <div class="load-details">
+                                    <div class="load-detail-item">
+                                        <span>Sessions Scheduled</span>
+                                    </div>
+                                    <div class="load-detail-item">
+                                        <span>Average Attendance:</span>
+                                        <strong id="avg-attendance">--%</strong>
+                                    </div>
+                                    <div class="load-detail-item" style="cursor:pointer;" onclick="switchTab('alerts')">
+                                        <span>Critical Absentees:</span>
+                                        <strong id="critical-absentees" style="color: #f87171;">--</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- New Assignment Button -->
+                        <button class="btn-dashed" onclick="openModal()">
+                            <span class="material-icons-outlined">add_circle_outline</span>
+                            New Assignment Track
+                        </button>
+
+                        <!-- Assignment Tracker -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Assignment Tracker</div>
+                            </div>
+                            <div class="assignment-list" id="assignment-list">
+                                <!-- Assignments rendered via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shortage Alerts Tab -->
+            <div id="tab-alerts" class="faculty-tab-section" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Short Attendance Alerts (<85%)</h3>
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                        <p style="color:var(--text-secondary); font-size:14px; margin:0;">Below is a list of students currently below target attendance in your classes. You can notify their parents/guardians directly via predefined WhatsApp messages.</p>
+                        <button id="whatsapp-group-btn" class="btn" style="background:#25d366; color:white; border:none; display:flex; align-items:center; gap:8px; padding:10px 20px; font-size:14px;" onclick="sendToWhatsAppGroup()">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                            Send to WhatsApp Group
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Reg. No</th>
+                                    <th>Student Name</th>
+                                    <th>Subject</th>
+                                    <th>Attendance Rate</th>
+                                    <th>Target</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shortage-alerts-body">
+                                <tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">No shortage alerts at this time.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="faculty-tab-section" style="display:none;">
+                <div class="card" style="max-width: 600px; margin: 0 auto;">
+                    <div class="card-header">
+                        <h3>Account Settings</h3>
+                    </div>
+                    <form id="settings-form" onsubmit="submitSettings(event)" style="margin-top: 16px; display:flex; flex-direction:column; gap:16px;">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" id="settings-name" disabled style="background:#f1f5f9;">
+                        </div>
+                        <div class="form-group">
+                            <label>Faculty ID / Username</label>
+                            <input type="text" class="form-control" id="settings-username" disabled style="background:#f1f5f9;">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" class="form-control" id="settings-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="text" class="form-control" id="settings-phone" placeholder="e.g. +91 98765 43210">
+                        </div>
+                        <hr style="border:0; border-top: 1px solid var(--border); margin:8px 0;">
+                        <h4>Change Password</h4>
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" class="form-control" id="settings-curr-pwd" placeholder="Enter current password to save changes">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" class="form-control" id="settings-new-pwd" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" class="form-control" id="settings-conf-pwd" placeholder="Confirm new password">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="align-self: flex-start; margin-top:12px;">Save Profile Changes</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Help Center Modal -->
+    <div class="modal-overlay" id="help-modal">
+        <div class="modal" style="width: 550px;">
+            <div class="modal-header">
+                <h3>Faculty Help Center</h3>
+                <button class="modal-close" onclick="closeHelpModal()"><span class="material-icons-outlined">close</span></button>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto; display:flex; flex-direction:column; gap:16px;">
+                <div>
+                    <h5 style="font-weight:600; margin-bottom:4px;">How do I mark proctor attendance?</h5>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">Select the academic date, class hour, and subject. Select individual attendance status for each student (P, A, L, OD, ML) and click "Save Attendance" at the bottom.</p>
+                </div>
+                <div>
+                    <h5 style="font-weight:600; margin-bottom:4px;">Can I edit marked attendance?</h5>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">Yes. Simply reload the subject, date, and hour. Make adjustments to the statuses and click "Save Attendance" again to overwrite the records.</p>
+                </div>
+                <div>
+                    <h5 style="font-weight:600; margin-bottom:4px;">How do shortage alerts work?</h5>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">The system calculates student overall participation. Any student who drops below the target (usually 85%) will show up in the Shortage Alerts list. Use the "Notify Parent" button to generate a WhatsApp message.</p>
+                </div>
+                <div>
+                    <h5 style="font-weight:600; margin-bottom:4px;">How do I track assignments?</h5>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">Click "New Assignment Track", fill in details, and submit. The tracker list will appear on the right column of your dashboard where you can toggle completion for individual students.</p>
+                </div>
+                <hr style="border:0; border-top:1px solid var(--border);">
+                <div>
+                    <h5 style="font-weight:600;">Proctor Support Contact</h5>
+                    <p style="font-size:13px; color:var(--text-secondary);">College Admin / Technical Help desk: <code>support@tec.edu</code> or call <code>+91 44 2235 7000</code>.</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:flex-end;">
+                <button class="btn btn-primary" onclick="closeHelpModal()">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Modal for New Assignment -->
+    <div class="modal-overlay" id="assignment-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Create New Assignment</div>
+                <button class="modal-close" onclick="closeModal()"><span class="material-icons-outlined">close</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Subject</label>
+                    <select class="form-control" id="modal-subject"></select>
+                </div>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" class="form-control" id="modal-title" placeholder="e.g. Lab Task 4">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="form-control" id="modal-desc" placeholder="Brief description..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitAssignment()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentSubjectId = null;
+        let studentsData = [];
+        let attendanceData = {}; // student_id -> status
+        let assignmentsData = [];
+        let timetableData = [];
+        let currentUser = null;
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('academic-date').value = today;
+            
+            document.getElementById('academic-date').addEventListener('change', handleSubjectChange);
+            document.getElementById('class-hour').addEventListener('change', handleSubjectChange);
+            
+            init();
+        });
+
+        async function init() {
+            try {
+                // Auth Check
+                const auth = await fetch('/api/auth/me');
+                if (!auth.ok) {
+                    window.location.href = '/index.html';
+                    return;
+                }
+                currentUser = await auth.json();
+                
+                document.getElementById('faculty-name').textContent = currentUser.name || currentUser.username || 'Faculty Name';
+                document.getElementById('avatar-initials').textContent = (currentUser.name || currentUser.username || 'F').charAt(0).toUpperCase();
+                
+                await loadTimetable();
+                await loadSubjects();
+                await loadTodayLoad();
+                await loadNotifications();
+            } catch (error) {
+                console.error("Init error", error);
+                showToast("Error connecting to server", "error");
+            }
+        }
+        
+        function showComingSoon(feature) {
+            showToast(`${feature} feature will be available in the next release!`, 'success');
+        }
+
+        // Tab switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.faculty-tab-section').forEach(sec => {
+                sec.style.display = 'none';
+            });
+            document.getElementById(`tab-${tabId}`).style.display = 'block';
+
+            document.querySelectorAll('.nav-links .nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.header-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            if (tabId === 'overview') {
+                document.querySelector('.nav-links a[onclick*="overview"]').classList.add('active');
+                document.getElementById('tab-btn-overview').classList.add('active');
+                document.getElementById('page-header-title').textContent = "Faculty Dashboard";
+            } else if (tabId === 'alerts') {
+                document.querySelector('.nav-links a[onclick*="alerts"]').classList.add('active');
+                document.getElementById('tab-btn-alerts').classList.add('active');
+                document.getElementById('page-header-title').textContent = "Short Attendance Alerts";
+                loadAlerts();
+            } else if (tabId === 'settings') {
+                document.querySelector('.nav-links a[onclick*="settings"]').classList.add('active');
+                document.getElementById('tab-btn-settings').classList.add('active');
+                document.getElementById('page-header-title').textContent = "Account Settings";
+                loadProfileInSettings();
+            }
+
+            document.getElementById('notifications-panel').style.display = 'none';
+        }
+
+        // Settings Panel
+        function loadProfileInSettings() {
+            if (!currentUser) return;
+            document.getElementById('settings-name').value = currentUser.name || '';
+            document.getElementById('settings-username').value = currentUser.username || '';
+            document.getElementById('settings-email').value = currentUser.email || '';
+            document.getElementById('settings-phone').value = currentUser.phone || '';
+            
+            document.getElementById('settings-curr-pwd').value = '';
+            document.getElementById('settings-new-pwd').value = '';
+            document.getElementById('settings-conf-pwd').value = '';
+        }
+
+        async function submitSettings(e) {
+            e.preventDefault();
+            const email = document.getElementById('settings-email').value;
+            const phone = document.getElementById('settings-phone').value;
+            const currPwd = document.getElementById('settings-curr-pwd').value;
+            const newPwd = document.getElementById('settings-new-pwd').value;
+            const confPwd = document.getElementById('settings-conf-pwd').value;
+
+            const payload = { email, phone };
+
+            if (currPwd || newPwd || confPwd) {
+                if (!currPwd || !newPwd || !confPwd) {
+                    showToast('Please fill all password fields to change your password', 'error');
+                    return;
+                }
+                if (newPwd !== confPwd) {
+                    showToast('New passwords do not match', 'error');
+                    return;
+                }
+                payload.current_password = currPwd;
+                payload.new_password = newPwd;
+            }
+
+            try {
+                const res = await fetch('/api/auth/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to update settings');
+                
+                showToast('Profile settings updated successfully', 'success');
+                // Refresh auth state
+                const auth = await fetch('/api/auth/me');
+                if (auth.ok) currentUser = await auth.json();
+                loadProfileInSettings();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        // Notifications
+        async function loadNotifications() {
+            try {
+                const res = await fetch('/api/auth/notifications');
+                if (!res.ok) return;
+                const list = await res.json();
+                const container = document.getElementById('notifications-list');
+                const badge = document.getElementById('notif-badge');
+                
+                const unread = list.filter(n => n.read === 0 || n.read === '0');
+                if (unread.length > 0) {
+                    badge.textContent = unread.length;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                if (list.length === 0) {
+                    container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-muted);">No notifications</div>';
+                    return;
+                }
+
+                container.innerHTML = list.map(n => `
+                    <div style="padding: 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; background: ${n.read ? 'white' : 'var(--info-light)'}">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight: 600; font-size:13px; color: var(--text-primary);">${n.title}</span>
+                            ${!n.read ? `<button style="border:none; background:none; color:var(--blue-accent); font-size:10px; cursor:pointer;" onclick="markNotificationRead(${n.id}, event)">Mark read</button>` : ''}
+                        </div>
+                        <span style="font-size:12px; color: var(--text-secondary);">${n.message}</span>
+                        <span style="font-size:10px; color: var(--text-muted);">${new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function toggleNotifications() {
+            const panel = document.getElementById('notifications-panel');
+            panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        async function markNotificationRead(id, e) {
+            if (e) e.stopPropagation();
+            try {
+                const res = await fetch(`/api/auth/notifications/${id}/read`, { method: 'PUT' });
+                if (res.ok) {
+                    loadNotifications();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function markAllNotificationsRead() {
+            try {
+                const res = await fetch('/api/auth/notifications/read-all', { method: 'PUT' });
+                if (res.ok) {
+                    loadNotifications();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Help Center
+        function openHelpModal() {
+            document.getElementById('help-modal').classList.add('show');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('help-modal').classList.remove('show');
+        }
+
+        // Load Alerts
+        async function loadAlerts() {
+            try {
+                const res = await fetch('/api/faculty/alerts');
+                if (!res.ok) throw new Error('Failed to fetch shortage alerts');
+                const alerts = await res.json();
+                
+                const tbody = document.getElementById('shortage-alerts-body');
+                if (!alerts || alerts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">No shortage alerts at this time.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = alerts.map(a => `
+                    <tr>
+                        <td class="reg-col">${a.reg_no}</td>
+                        <td class="student-name-col">${a.student_name}</td>
+                        <td>${a.subject_name}</td>
+                        <td style="color:var(--danger); font-weight:600;">${a.percentage}%</td>
+                        <td>${a.target}%</td>
+                        <td>
+                            <button class="btn btn-outline" style="padding:4px 8px; font-size:12px; height:auto; color:#25d366; border-color:#25d366;" onclick="notifyParent('${a.student_name}', '${a.reg_no}', '${a.subject_name}', '${a.percentage}', '${a.phone}')">
+                                <span class="material-icons-outlined" style="font-size:14px; vertical-align:middle;">chat</span> Notify Parent
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                showToast("Error loading alerts", "error");
+            }
+        }
+
+        function notifyParent(name, regNo, subject, percentage, phone) {
+            const defaultPhone = phone || "911234567890";
+            const cleanPhone = defaultPhone.replace(/\+/g, '').trim();
+            const msg = `Dear Guardian, this is to inform you that your ward ${name} (Reg No: ${regNo}) has a short attendance of ${percentage}% in ${subject}. Please ensure they attend classes regularly. - TEC College`;
+            const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+            showToast(`WhatsApp link generated for ${name}'s guardian!`);
+        }
+
+        async function loadTimetable() {
+            try {
+                const res = await fetch('/api/faculty/timetable');
+                if (!res.ok) throw new Error('Failed to fetch timetable');
+                timetableData = await res.json();
+                
+                const hourSelect = document.getElementById('class-hour');
+                hourSelect.innerHTML = '';
+                
+                const uniqueHours = [...new Map(timetableData.map(item => [item.hour_number, item])).values()];
+                uniqueHours.forEach(t => {
+                    const option = new Option(`Hour ${t.hour_number} (${t.start_time} - ${t.end_time})`, t.hour_number);
+                    hourSelect.add(option);
+                });
+                
+                if (uniqueHours.length === 0) {
+                    hourSelect.add(new Option("No hours available", ""));
+                }
+            } catch (error) {
+                console.error(error);
+                // Fallback options if API fails
+                const hourSelect = document.getElementById('class-hour');
+                hourSelect.innerHTML = `
+                    <option value="1">Hour 1 (08:30 - 09:20)</option>
+                    <option value="2">Hour 2 (09:20 - 10:10)</option>
+                    <option value="3">Hour 3 (10:30 - 11:20)</option>
+                    <option value="4">Hour 4 (11:20 - 12:10)</option>
+                    <option value="5">Hour 5 (13:00 - 13:50)</option>
+                `;
+            }
+        }
+
+        async function loadSubjects() {
+            try {
+                const res = await fetch('/api/faculty/subjects');
+                if (!res.ok) throw new Error('Failed to fetch subjects');
+                const subjects = await res.json();
+                
+                const select = document.getElementById('subject-select');
+                const modalSelect = document.getElementById('modal-subject');
+                select.innerHTML = '';
+                modalSelect.innerHTML = '';
+                
+                subjects.forEach(sub => {
+                    const option = new Option(`${sub.code} - ${sub.name}`, sub.id);
+                    option.dataset.section = sub.section;
+                    select.add(option);
+                    modalSelect.add(new Option(`${sub.code} - ${sub.name}`, sub.id));
+                });
+                
+                if (subjects.length > 0) {
+                    currentSubjectId = subjects[0].id;
+                    document.getElementById('section-info').textContent = subjects[0].section;
+                    await handleSubjectChange();
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Error loading subjects", "error");
+            }
+        }
+
+        async function handleSubjectChange() {
+            const select = document.getElementById('subject-select');
+            currentSubjectId = select.value;
+            if (!currentSubjectId) return;
+
+            const option = select.options[select.selectedIndex];
+            if(option && option.dataset.section) {
+                document.getElementById('section-info').textContent = option.dataset.section;
+            }
+            
+            const date = document.getElementById('academic-date').value;
+            const hour = document.getElementById('class-hour').value;
+            
+            attendanceData = {}; // reset
+            await loadStudents(currentSubjectId);
+            await loadAttendance(currentSubjectId, date, hour);
+            await loadAssignments(currentSubjectId);
+            updateMarkingStats();
+        }
+
+        async function loadStudents(subjectId) {
+            try {
+                const res = await fetch(`/api/faculty/students?subject_id=${subjectId}`);
+                if (!res.ok) throw new Error('Failed to fetch students');
+                studentsData = await res.json();
+                
+                renderStudentTable();
+            } catch (error) {
+                console.error(error);
+                showToast("Error loading students", "error");
+            }
+        }
+
+        function renderStudentTable() {
+            const tbody = document.getElementById('student-table-body');
+            tbody.innerHTML = '';
+            
+            studentsData.forEach(student => {
+                const status = attendanceData[student.id];
+                const tr = document.createElement('tr');
+                
+                tr.innerHTML = `
+                    <td class="reg-col">${student.reg_no}</td>
+                    <td class="student-name-col">${student.name}</td>
+                    <td>
+                        <div class="att-actions" data-studentid="${student.id}">
+                            <button class="att-btn ${status === 'P' ? 'selected' : ''}" data-type="P" onclick="markStudent('${student.id}', 'P')">P</button>
+                            <button class="att-btn ${status === 'A' ? 'selected' : ''}" data-type="A" onclick="markStudent('${student.id}', 'A')">A</button>
+                            <button class="att-btn ${status === 'L' ? 'selected' : ''}" data-type="L" onclick="markStudent('${student.id}', 'L')">L</button>
+                            <button class="att-btn ${status === 'OD' ? 'selected' : ''}" data-type="OD" onclick="markStudent('${student.id}', 'OD')">OD</button>
+                            <button class="att-btn ${status === 'ML' ? 'selected' : ''}" data-type="ML" onclick="markStudent('${student.id}', 'ML')">ML</button>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge ${getStatusClass(status)}" id="status-${student.id}">
+                            ${getStatusText(status)}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            updateMarkingStats();
+        }
+
+        async function loadAttendance(subjectId, date, hour) {
+            if (!date || !hour) return;
+            try {
+                const res = await fetch(`/api/faculty/attendance?subject_id=${subjectId}&date=${date}&hour=${hour}`);
+                if (!res.ok) throw new Error('Failed to fetch attendance');
+                const data = await res.json();
+                
+                attendanceData = {};
+                if (data && Array.isArray(data)) {
+                    data.forEach(record => {
+                        attendanceData[record.student_id] = record.status;
+                    });
+                }
+                
+                renderStudentTable();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function markStudent(studentId, status) {
+            attendanceData[studentId] = status;
+            
+            const actionsDiv = document.querySelector(`.att-actions[data-studentid="${studentId}"]`);
+            if (actionsDiv) {
+                actionsDiv.querySelectorAll('.att-btn').forEach(btn => btn.classList.remove('selected'));
+                const btn = actionsDiv.querySelector(`.att-btn[data-type="${status}"]`);
+                if (btn) btn.classList.add('selected');
+            }
+            
+            const badge = document.getElementById(`status-${studentId}`);
+            if (badge) {
+                badge.className = `status-badge ${getStatusClass(status)}`;
+                badge.textContent = getStatusText(status);
+            }
+            
+            updateMarkingStats();
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'P': return 'present';
+                case 'A': return 'absent';
+                case 'L': return 'late';
+                case 'OD': return 'od';
+                case 'ML': return 'ml';
+                default: return 'unmarked';
+            }
+        }
+        
+        function getStatusText(status) {
+            switch(status) {
+                case 'P': return 'Present';
+                case 'A': return 'Absent';
+                case 'L': return 'Late (15m)';
+                case 'OD': return 'Duty Leave';
+                case 'ML': return 'Medical Leave';
+                default: return 'Unmarked';
+            }
+        }
+
+        function updateMarkingStats() {
+            const total = studentsData.length;
+            const marked = Object.keys(attendanceData).length;
+            const statsText = `Total Students: ${total} | Marking: ${marked}/${total} Complete`;
+            document.getElementById('marking-stats').textContent = statsText;
+        }
+
+        async function markAllPresent() {
+            try {
+                const date = document.getElementById('academic-date').value;
+                const hour = document.getElementById('class-hour').value;
+                
+                if (!currentSubjectId || !date || !hour) {
+                    showToast("Missing required fields", "error");
+                    return;
+                }
+                
+                const res = await fetch('/api/faculty/attendance/mark-all-present', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ subject_id: currentSubjectId, date, hour })
+                });
+                
+                if (!res.ok) throw new Error('Failed to mark all present');
+                
+                studentsData.forEach(s => {
+                    attendanceData[s.id] = 'P';
+                });
+                renderStudentTable();
+                showToast("All unmarked students set to Present", "success");
+            } catch (error) {
+                console.error(error);
+                showToast("Error marking all present", "error");
+            }
+        }
+
+        async function saveAttendance() {
+            try {
+                const records = Object.entries(attendanceData).map(([student_id, status]) => ({ student_id, status }));
+                if (records.length === 0) {
+                    showToast("No attendance marked yet", "error");
+                    return;
+                }
+                
+                const date = document.getElementById('academic-date').value;
+                const hour = document.getElementById('class-hour').value;
+                
+                if (!currentSubjectId || !date || !hour) {
+                    showToast("Missing required fields", "error");
+                    return;
+                }
+
+                const res = await fetch('/api/faculty/attendance', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ subject_id: currentSubjectId, date, hour, records })
+                });
+                
+                if (!res.ok) throw new Error('Failed to save attendance');
+                
+                showToast("Attendance saved successfully", "success");
+                await loadTodayLoad();
+            } catch (error) {
+                console.error(error);
+                showToast("Failed to save attendance", "error");
+            }
+        }
+
+        function downloadExcel() {
+            const date = document.getElementById('academic-date').value;
+            const hour = document.getElementById('class-hour').value;
+            if (!currentSubjectId || !date || !hour) {
+                showToast("Missing required fields for export", "error");
+                return;
+            }
+            window.location.href = `/api/faculty/export?subject_id=${currentSubjectId}&date=${date}&hour=${hour}`;
+            showToast("Exporting roster to Excel...", "success");
+        }
+
+        async function loadAssignments(subjectId) {
+            try {
+                const res = await fetch(`/api/faculty/assignments?subject_id=${subjectId}`);
+                if (!res.ok) throw new Error('Failed to fetch assignments');
+                assignmentsData = await res.json();
+                
+                renderAssignments();
+            } catch (error) {
+                console.error(error);
+                showToast("Error loading assignments", "error");
+            }
+        }
+        
+        function renderAssignments() {
+            const container = document.getElementById('assignment-list');
+            container.innerHTML = '';
+            
+            if(!assignmentsData || assignmentsData.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">No assignments for this subject.</p>';
+                return;
+            }
+            
+            assignmentsData.forEach(assn => {
+                const el = document.createElement('div');
+                el.className = 'assignment-item';
+                
+                let studentsHtml = '';
+                const totalStudents = assn.students ? assn.students.length : 0;
+                let completedCount = 0;
+                
+                if (assn.students) {
+                    assn.students.forEach(s => {
+                        const isCompleted = s.status === 'COMPLETED';
+                        if (isCompleted) completedCount++;
+                        studentsHtml += `
+                            <div class="assn-student-row">
+                                <div class="assn-student-name">
+                                    <div class="dot ${isCompleted ? 'completed' : 'pending'}"></div>
+                                    ${s.student_name || 'Student'}
+                                </div>
+                                <button class="status-toggle" onclick="toggleAssignmentStatus('${assn.id}', '${s.student_id}', '${isCompleted ? 'PENDING' : 'COMPLETED'}')">
+                                    ${isCompleted ? 'COMPLETED' : 'PENDING'}
+                                </button>
+                            </div>
+                        `;
+                    });
+                }
+                
+                const completion_percent = totalStudents > 0 ? Math.round((completedCount / totalStudents) * 100) : 0;
+                
+                el.innerHTML = `
+                    <div class="assn-header">
+                        <div>
+                            <div class="assn-badge">${completion_percent}% Done</div>
+                            <div class="assn-title">${assn.title}</div>
+                        </div>
+                    </div>
+                    <div class="assn-progress">
+                        <div class="assn-progress-bar" style="width: ${completion_percent}%"></div>
+                    </div>
+                    <div class="assn-students">
+                        ${studentsHtml}
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        async function toggleAssignmentStatus(assignmentId, studentId, newStatus) {
+            try {
+                const res = await fetch(`/api/faculty/assignments/${assignmentId}/track`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ student_id: Number(studentId), status: newStatus })
+                });
+                
+                if (!res.ok) throw new Error('Failed to update assignment status');
+                
+                // Use loose equality (==) to handle string/number mismatch from HTML template literals
+                const assn = assignmentsData.find(a => a.id == assignmentId);
+                if (assn && assn.students) {
+                    const student = assn.students.find(s => s.student_id == studentId);
+                    if (student) {
+                        student.status = newStatus;
+                        renderAssignments();
+                        showToast(`Status updated to ${newStatus}`, 'success');
+                    }
+                } else {
+                    // Fallback: reload assignments from server
+                    await loadAssignments(currentSubjectId);
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Failed to update status", "error");
+            }
+        }
+
+        // Modal logic
+        function openModal() {
+            document.getElementById('modal-subject').value = currentSubjectId;
+            document.getElementById('modal-title').value = '';
+            document.getElementById('modal-desc').value = '';
+            document.getElementById('assignment-modal').classList.add('show');
+        }
+        
+        function closeModal() {
+            document.getElementById('assignment-modal').classList.remove('show');
+        }
+        
+        async function submitAssignment() {
+            const subjectId = document.getElementById('modal-subject').value;
+            const title = document.getElementById('modal-title').value.trim();
+            const desc = document.getElementById('modal-desc').value.trim();
+            
+            if(!title) {
+                showToast("Title is required", "error");
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/faculty/assignments', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ subject_id: subjectId, title, description: desc })
+                });
+                
+                if (!res.ok) throw new Error('Failed to create assignment');
+                
+                showToast("Assignment created successfully", "success");
+                closeModal();
+                if(subjectId === currentSubjectId || subjectId == currentSubjectId) {
+                    await loadAssignments(currentSubjectId);
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Failed to create assignment", "error");
+            }
+        }
+
+        async function loadTodayLoad() {
+            try {
+                const res = await fetch('/api/faculty/today');
+                if (!res.ok) throw new Error('Failed to fetch today load');
+                const data = await res.json();
+                
+                document.getElementById('sessions-count').textContent = data.sessions || '0';
+                document.getElementById('avg-attendance').textContent = data.avg_attendance !== undefined ? `${data.avg_attendance}%` : '--%';
+                document.getElementById('critical-absentees').textContent = data.critical_absentees !== undefined ? `${data.critical_absentees}` : '--';
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/index.html';
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'check_circle' : 'error';
+            const title = type === 'success' ? 'Success' : 'Error';
+            
+            toast.innerHTML = `
+                <span class="material-icons-outlined toast-icon">${icon}</span>
+                <div class="toast-content">
+                    <h4>${title}</h4>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // WhatsApp: Send shortage alerts to group
+        async function sendToWhatsAppGroup() {
+            try {
+                const subjectSelect = document.getElementById('subject-select');
+                const subjectId = subjectSelect ? subjectSelect.value : null;
+                
+                if (!subjectId) {
+                    showToast('Please select a subject first', 'error');
+                    return;
+                }
+                
+                const res = await fetch('/api/faculty/whatsapp-notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject_id: parseInt(subjectId) })
+                });
+                
+                if (!res.ok) throw new Error('Failed to generate WhatsApp message');
+                const data = await res.json();
+                
+                // Open WhatsApp with the message
+                window.open(data.whatsapp_url, '_blank');
+                showToast(`WhatsApp message prepared for ${data.student_count} students!`);
+            } catch (err) {
+                console.error(err);
+                showToast('Error generating WhatsApp message', 'error');
+            }
+        }
+
+        // WhatsApp: Send current session attendance
+        async function sendAttendanceToWhatsApp() {
+            try {
+                const subjectSelect = document.getElementById('subject-select');
+                const dateInput = document.getElementById('academic-date');
+                const hourSelect = document.getElementById('class-hour');
+                
+                const subjectId = subjectSelect ? subjectSelect.value : null;
+                const date = dateInput ? dateInput.value : null;
+                const hour = hourSelect ? hourSelect.value : null;
+                const subjectName = subjectSelect ? subjectSelect.options[subjectSelect.selectedIndex].text : '';
+                
+                if (!subjectId) {
+                    showToast('Please select a subject first', 'error');
+                    return;
+                }
+                
+                // Get current attendance state from the UI
+                const rows = document.querySelectorAll('#student-table-body tr');
+                if (!rows || rows.length === 0) {
+                    showToast('No students loaded', 'error');
+                    return;
+                }
+                
+                let message = `📋 *Attendance Update - ${subjectName}*\n`;
+                message += `📅 Date: ${date || new Date().toLocaleDateString()}\n`;
+                message += `⏰ Hour: ${hour || '-'}\n`;
+                message += `─────────────────\n`;
+                
+                let totalPresent = 0, totalAbsent = 0, totalLate = 0;
+                
+                rows.forEach((row, i) => {
+                    const regNo = row.querySelector('.reg-col')?.textContent?.trim() || '';
+                    const name = row.querySelector('.student-name-col')?.textContent?.trim() || '';
+                    const statusBadge = row.querySelector('.status-badge');
+                    const statusText = statusBadge?.textContent?.trim() || 'Unmarked';
+                    
+                    let icon = '⬜';
+                    if (statusText === 'Present') { icon = '✅'; totalPresent++; }
+                    else if (statusText === 'Absent') { icon = '❌'; totalAbsent++; }
+                    else if (statusText.includes('Late')) { icon = '⏰'; totalLate++; }
+                    else if (statusText.includes('Duty')) { icon = '🔵'; totalPresent++; }
+                    else if (statusText.includes('Medical')) { icon = '🟣'; }
+                    
+                    message += `${i+1}. ${icon} ${name} (${regNo}) - ${statusText}\n`;
+                });
+                
+                message += `─────────────────\n`;
+                message += `✅ Present: ${totalPresent} | ❌ Absent: ${totalAbsent} | ⏰ Late: ${totalLate}\n`;
+                message += `Total: ${rows.length}\n`;
+                message += `\n_Sent from Attendance @TEC_`;
+                
+                const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+                showToast('WhatsApp message opened! Select your group to send.');
+            } catch (err) {
+                console.error(err);
+                showToast('Error preparing WhatsApp message', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Attendance @TEC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        :root {
+            --navy-primary: #0a1628;
+            --navy-secondary: #1a3a5c;
+            --blue-accent: #2563eb;
+            --bg-color: #f5f6fa;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-primary: #0a1628;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --warning: #d97706;
+            --warning-light: #fef3c7;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --info: #3b82f6;
+            --info-light: #dbeafe;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-color); display: flex; color: var(--text-primary); min-height: 100vh; }
+
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 24px; }
+        .btn { border-radius: 8px; font-weight: 600; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 20px; cursor: pointer; border: none; font-size: 14px; transition: all 0.2s; }
+        .btn-primary { background: var(--blue-accent); color: white; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
+        .btn-outline:hover { background: var(--bg-color); }
+
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--navy-primary); color: white; display: flex; flex-direction: column; position: fixed; height: 100vh; left: 0; top: 0; z-index: 10; }
+        .sidebar-brand { padding: 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-brand .icon { font-size: 32px; color: var(--blue-accent); }
+        .sidebar-brand-text h2 { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+        .sidebar-brand-text p { font-size: 11px; color: var(--text-muted); }
+
+        .nav-menu { padding: 24px 0; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .nav-item { padding: 12px 24px; display: flex; align-items: center; gap: 12px; color: #cbd5e1; text-decoration: none; font-size: 15px; font-weight: 500; border-left: 3px solid transparent; transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-item.active { background: white; color: var(--text-primary); border-left-color: var(--blue-accent); }
+        
+        .sidebar-bottom { padding: 24px; display: flex; flex-direction: column; gap: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-bottom .nav-item { padding: 8px 0; }
+        .sidebar-bottom .nav-item.logout { color: #fca5a5; }
+
+        /* Main Content */
+        .main-wrapper { margin-left: 260px; flex: 1; display: flex; flex-direction: column; }
+        
+        /* Header */
+        .header { height: 72px; background: white; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 5; }
+        .header-title { font-size: 18px; font-weight: 600; }
+        .header-tabs { display: flex; height: 100%; gap: 32px; }
+        .header-tab { display: flex; align-items: center; font-size: 15px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; }
+        .header-tab.active { color: var(--blue-accent); border-bottom-color: var(--blue-accent); }
+        .header-right { display: flex; align-items: center; gap: 20px; }
+        .icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; }
+        .user-profile { display: flex; align-items: center; gap: 12px; padding-left: 20px; border-left: 1px solid var(--border); }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--navy-secondary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; }
+        .user-info h4 { font-size: 14px; font-weight: 600; }
+        .user-info p { font-size: 12px; color: var(--text-muted); }
+
+        /* Content */
+        .content { padding: 32px; flex: 1; display: flex; flex-direction: column; gap: 24px; }
+        
+        /* Hero Section */
+        .hero-section { display: flex; gap: 24px; }
+        .hero-left { flex: 0 0 70%; display: flex; background: linear-gradient(135deg, var(--navy-primary), var(--navy-secondary)); color: white; border-radius: 12px; overflow: hidden; position: relative; }
+        .hero-text { padding: 32px; flex: 1; z-index: 1; }
+        .badge { display: inline-block; padding: 4px 12px; background: rgba(255,255,255,0.1); border-radius: 16px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+        .hero-text h2 { font-size: 28px; margin-bottom: 8px; }
+        .hero-text p { color: #cbd5e1; font-size: 15px; margin-bottom: 24px; max-width: 400px; }
+        .hero-stats { padding: 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.1); width: 250px; z-index: 1; }
+        
+        /* Circle Progress */
+        .circle-progress { position: relative; width: 120px; height: 120px; margin-bottom: 20px; }
+        .circle-progress svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .circle-progress circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+        .circle-bg { stroke: rgba(255,255,255,0.1); }
+        .circle-value { stroke: var(--success); stroke-dasharray: 339.292; stroke-dashoffset: 339.292; transition: stroke-dashoffset 1s ease-out; }
+        .circle-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; }
+        
+        .stats-row { display: flex; gap: 16px; text-align: center; }
+        .stat-item h4 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .stat-item p { font-size: 12px; color: #cbd5e1; }
+        
+        .hero-right { flex: 0 0 calc(30% - 24px); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .card-header h3 { font-size: 16px; font-weight: 600; }
+        
+        .class-list { display: flex; flex-direction: column; gap: 12px; }
+        .class-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; }
+        .class-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .class-icon.completed { background: var(--success-light); color: var(--success); }
+        .class-icon.upcoming { background: var(--info-light); color: var(--info); }
+        .class-details { flex: 1; }
+        .class-details h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .class-details p { font-size: 12px; color: var(--text-secondary); }
+
+        /* Middle Section */
+        .middle-section { display: flex; gap: 24px; }
+        .middle-left { flex: 0 0 65%; }
+        .subjects-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .subject-card { padding: 16px; border: 1px solid var(--border); border-radius: 8px; }
+        .subject-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+        .subject-header h4 { font-size: 14px; font-weight: 600; }
+        .subject-header span { font-size: 14px; font-weight: 700; color: var(--blue-accent); }
+        .progress-bar { width: 100%; height: 6px; background: var(--bg-color); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+        .progress-fill { height: 100%; background: var(--blue-accent); border-radius: 3px; }
+        .subject-meta { font-size: 12px; color: var(--text-secondary); }
+
+        .middle-right { flex: 0 0 calc(35% - 24px); }
+        .leave-stats { display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+        .leave-stat-item h4 { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+        .leave-stat-item p { font-size: 12px; color: var(--text-secondary); }
+        .leave-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+        .leave-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-color); border-radius: 8px; }
+        .leave-info h5 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        .leave-info p { font-size: 11px; color: var(--text-secondary); }
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .status-approved { background: var(--success-light); color: var(--success); }
+        .status-pending { background: var(--warning-light); color: var(--warning); }
+        .status-rejected { background: var(--danger-light); color: var(--danger); }
+
+        /* Table Section */
+        .table-section { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); }
+        .table-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px 24px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { font-weight: 600; color: var(--text-secondary); background: #f8fafc; }
+        td.fw-bold { font-weight: 600; color: var(--text-primary); }
+        .pagination { padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-secondary); }
+        .page-btns { display: flex; gap: 8px; }
+        .page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; background: white; cursor: pointer; }
+        .page-btn.active { background: var(--blue-accent); color: white; border-color: var(--blue-accent); }
+
+        /* Floating Chat */
+        .chat-btn { position: fixed; bottom: 32px; right: 32px; width: 56px; height: 56px; background: var(--navy-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(10,22,40,0.3); cursor: pointer; transition: transform 0.2s; z-index: 100; }
+        .chat-btn:hover { transform: scale(1.05); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal { background: white; width: 480px; border-radius: 12px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-header h3 { font-size: 20px; font-weight: 600; }
+        .close-modal { cursor: pointer; color: var(--text-muted); }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+        .form-control { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 14px; }
+        .form-control:focus { outline: none; border-color: var(--blue-accent); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+
+        /* Loading */
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--blue-accent); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; margin: auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">
+        <div class="loader" style="width: 48px; height: 48px; border-width: 4px;"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <span class="material-icons-outlined icon">verified_user</span>
+            <div class="sidebar-brand-text">
+                <h2>Attendance @TEC</h2>
+                <p>Reliable Proctor System</p>
+            </div>
+        </div>
+        <div class="nav-menu">
+            <a href="#" class="nav-item active" onclick="switchTab('overview')"><span class="material-icons-outlined">dashboard</span> Dashboard</a>
+            <a href="#" class="nav-item" onclick="showComingSoon('Roster')"><span class="material-icons-outlined">people</span> Roster</a>
+            <a href="#" class="nav-item" onclick="showComingSoon('Attendance')"><span class="material-icons-outlined">fact_check</span> Attendance</a>
+            <a href="#" class="nav-item" onclick="switchTab('analytics')"><span class="material-icons-outlined">analytics</span> Reports</a>
+            <a href="#" class="nav-item" onclick="showComingSoon('Schedules')"><span class="material-icons-outlined">calendar_today</span> Schedules</a>
+            <a href="#" class="nav-item" onclick="switchTab('settings')"><span class="material-icons-outlined">settings</span> Settings</a>
+        </div>
+        <div class="sidebar-bottom">
+            <button class="btn btn-primary" onclick="exportData()" style="width: 100%;">
+                <span class="material-icons-outlined">download</span> Export Data
+            </button>
+            <a href="#" class="nav-item" onclick="openHelpModal()"><span class="material-icons-outlined">help_outline</span> Help Center</a>
+            <a href="#" class="nav-item logout" onclick="logout()"><span class="material-icons-outlined">logout</span> Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-title" id="page-header-title">Attendance Management System</div>
+            <div class="header-tabs">
+                <div class="header-tab active" id="tab-btn-overview" onclick="switchTab('overview')">Overview</div>
+                <div class="header-tab" id="tab-btn-analytics" onclick="switchTab('analytics')">Analytics</div>
+                <div class="header-tab" id="tab-btn-settings" onclick="switchTab('settings')">Settings</div>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" onclick="toggleNotifications()" style="position:relative;">
+                    <span class="material-icons-outlined">notifications</span>
+                    <span id="notif-badge" style="position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; border-radius:50%; font-size:9px; padding:2px 5px; display:none;">0</span>
+                </button>
+                <button class="icon-btn" onclick="showComingSoon('Schedule Details')"><span class="material-icons-outlined">schedule</span></button>
+                <button class="icon-btn" onclick="openHelpModal()"><span class="material-icons-outlined">help_outline</span></button>
+                <div class="user-profile">
+                    <div class="avatar" id="user-initial">A</div>
+                    <div class="user-info">
+                        <h4 id="user-name">Alex Johnson</h4>
+                        <p id="user-id">ID: 20240982</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notifications Panel -->
+        <div id="notifications-panel" style="position: absolute; right: 80px; top: 72px; width: 320px; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 1000;">
+            <div style="padding: 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 600;">
+                <span>Notifications</span>
+                <button class="btn" style="height: auto; padding: 4px 8px; font-size: 11px; background: transparent; color: var(--blue-accent);" onclick="markAllNotificationsRead()">Mark all read</button>
+            </div>
+            <div id="notifications-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column;">
+                <div style="padding: 16px; text-align: center; color: var(--text-muted);">No new notifications</div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            
+            <!-- Overview Tab -->
+            <div id="tab-overview" class="student-tab-section">
+                <!-- Hero -->
+                <div class="hero-section">
+                    <div class="hero-left">
+                        <div class="hero-text">
+                            <span class="badge" id="academic-year">Academic Year 2024-2025</span>
+                            <h2 id="hero-greeting">Your Attendance is Excellent, Alex!</h2>
+                            <p>You have maintained a strong attendance record this semester. Keep up the good work to ensure academic success.</p>
+                            <button class="btn" onclick="switchTab('analytics')" style="background: white; color: var(--navy-primary);">Detailed Breakdown</button>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="circle-progress">
+                                <svg viewBox="0 0 120 120">
+                                    <circle class="circle-bg" cx="60" cy="60" r="54"></circle>
+                                    <circle class="circle-value" id="overall-progress" cx="60" cy="60" r="54"></circle>
+                                </svg>
+                                <div class="circle-text" id="overall-percentage">92%</div>
+                            </div>
+                            <div class="stats-row">
+                                <div class="stat-item">
+                                    <h4 id="stat-present" style="color: #4ade80;">164</h4>
+                                    <p>Present</p>
+                                </div>
+                                <div class="stat-item">
+                                    <h4 id="stat-absent" style="color: #f87171;">8</h4>
+                                    <p>Absent</p>
+                                </div>
+                                <div class="stat-item">
+                                    <h4 id="stat-late" style="color: #fbbf24;">4</h4>
+                                    <p>Late</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card hero-right">
+                        <div class="card-header">
+                            <h3>Today's Status</h3>
+                            <span class="material-icons-outlined" style="color: var(--text-muted);">more_horiz</span>
+                        </div>
+                        <div class="class-list" id="today-classes">
+                            <div style="text-align:center; padding: 20px;"><div class="loader"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle -->
+                <div class="middle-section">
+                    <div class="card middle-left">
+                        <div class="card-header">
+                            <h3>Subject-wise Attendance</h3>
+                            <a href="#" onclick="switchTab('analytics')" style="color: var(--blue-accent); font-size: 13px; text-decoration: none; font-weight: 500;">View All ></a>
+                        </div>
+                        <div class="subjects-grid" id="subjects-grid">
+                            <div style="grid-column: span 2; text-align:center; padding: 20px;"><div class="loader"></div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card middle-right">
+                        <div class="card-header">
+                            <h3>Leave Status</h3>
+                        </div>
+                        <div class="leave-stats">
+                            <div class="leave-stat-item">
+                                <h4 id="leaves-taken">2</h4>
+                                <p>Taken</p>
+                            </div>
+                            <div class="leave-stat-item" style="text-align: right;">
+                                <h4 id="leaves-avail" style="color: var(--success);">10</h4>
+                                <p>Available</p>
+                            </div>
+                        </div>
+                        <div class="leave-list" id="leave-list">
+                            <div style="text-align:center; padding: 20px;"><div class="loader"></div></div>
+                        </div>
+                        <button class="btn btn-outline" style="width: 100%;" onclick="openLeaveModal()">Request New Leave</button>
+                    </div>
+                </div>
+
+                <!-- Bottom -->
+                <div class="table-section">
+                    <div class="table-header">
+                        <h3>Attendance History</h3>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-outline"><span class="material-icons-outlined">filter_list</span> Filter</button>
+                            <button class="btn btn-primary" onclick="exportData()"><span class="material-icons-outlined">file_download</span> Download Monthly Report</button>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Subject</th>
+                                    <th>Instructor</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table">
+                                <tr><td colspan="5" style="text-align:center; padding: 40px;"><div class="loader"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span id="page-info">Showing 1 to 5 of 24 entries</span>
+                        <div class="page-btns" id="pagination-btns">
+                            <!-- populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="tab-analytics" class="student-tab-section" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Advanced Attendance Analytics</h3>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:16px;">
+                        <div>
+                            <h4>Overview Trend</h4>
+                            <p style="color:var(--text-secondary); font-size:14px; margin: 8px 0 20px 0;">Track your class participation trends and safety margin status across your subject roster.</p>
+                            <div id="analytics-subjects-list" style="display:flex; flex-direction:column; gap:16px;">
+                                <!-- Detailed analytics cards populated by JS -->
+                            </div>
+                        </div>
+                        <div>
+                            <h4>Proctor Recommendations</h4>
+                            <div class="card" style="background:var(--bg-color); border:none; margin-bottom:20px;">
+                                <h5 style="color:var(--navy-primary); display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                                    <span class="material-icons-outlined" style="color:var(--blue-accent);">info</span> proctor Tip
+                                </h5>
+                                <p id="proctor-recommendation" style="font-size:14px; line-height:1.6; color:var(--text-secondary);">Loading your attendance details...</p>
+                            </div>
+                            <div class="card" style="border-color:var(--border);">
+                                <h5 style="margin-bottom:12px;">Attendance Guidelines</h5>
+                                <ul style="padding-left:20px; font-size:13px; color:var(--text-secondary); display:flex; flex-direction:column; gap:8px;">
+                                    <li>Maintaining 85% attendance is mandatory for proctor approval.</li>
+                                    <li>Attendance below 75% triggers an automatic alert to guardians.</li>
+                                    <li>Duty Leaves (OD) do not count against your absence records.</li>
+                                    <li>Late arrivals (L) count as half-day present (0.5).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="student-tab-section" style="display:none;">
+                <div class="card" style="max-width: 600px; margin: 0 auto;">
+                    <div class="card-header">
+                        <h3>Account Settings</h3>
+                    </div>
+                    <form id="settings-form" onsubmit="submitSettings(event)" style="margin-top: 16px; display:flex; flex-direction:column; gap:16px;">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" id="settings-name" disabled style="background:#f1f5f9;">
+                        </div>
+                        <div class="form-group">
+                            <label>Register Number / Username</label>
+                            <input type="text" class="form-control" id="settings-username" disabled style="background:#f1f5f9;">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" class="form-control" id="settings-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="text" class="form-control" id="settings-phone" required>
+                        </div>
+                        <hr style="border:0; border-top: 1px solid var(--border); margin:8px 0;">
+                        <h4>Change Password</h4>
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" class="form-control" id="settings-curr-pwd" placeholder="Enter current password to save changes">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" class="form-control" id="settings-new-pwd" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" class="form-control" id="settings-conf-pwd" placeholder="Confirm new password">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="align-self: flex-start; margin-top:12px;">Save Profile Changes</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Floating Chat -->
+    <div class="chat-btn" onclick="openHelpModal()">
+        <span class="material-icons-outlined">help_outline</span>
+    </div>
+
+    <!-- Help Center Modal -->
+    <div class="modal-overlay" id="help-modal">
+        <div class="modal" style="width: 550px;">
+            <div class="modal-header">
+                <h3>Help Center & FAQs</h3>
+                <span class="material-icons-outlined close-modal" onclick="closeHelpModal()">close</span>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto; display:flex; flex-direction:column; gap:16px;">
+                <div>
+                    <h5 style="font-weight:600; margin-bottom:4px;">Q: How is my attendance computed?</h5>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">We use standard college rules: <code>(Present + 0.5 * Late) / Total * 100</code>. Absent hours reduce your percentage.</p>
+                </div>
+                <div>
+                    <h5 style="font-weight:600; margin-bottom:4px;">Q: What is the target attendance percentage?</h5>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">The required attendance to take examinations is 85%. Fallback below 75% will trigger parental notification alerts.</p>
+                </div>
+                <div>
+                    <h5 style="font-weight:600; margin-bottom:4px;">Q: How do I request leave?</h5>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">Click "Request New Leave" on the dashboard, fill in your details and dates, and submit. Your proctor will review it.</p>
+                </div>
+                <div>
+                    <h5 style="font-weight:600; margin-bottom:4px;">Q: What do OD and ML stand for?</h5>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;"><strong>OD</strong> stands for On Duty leave (representing official representation of college). <strong>ML</strong> stands for Medical Leave.</p>
+                </div>
+                <hr style="border:0; border-top:1px solid var(--border);">
+                <div>
+                    <h5 style="font-weight:600;">Need Technical Assistance?</h5>
+                    <p style="font-size:13px; color:var(--text-secondary);">Contact us at: <code>support@tec.edu</code> or call the help desk at <code>+91 44 2235 7000</code>.</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:flex-end; margin-top:20px;">
+                <button class="btn btn-primary" onclick="closeHelpModal()">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Modal -->
+    <div class="modal-overlay" id="leave-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Request Leave</h3>
+                <span class="material-icons-outlined close-modal" onclick="closeLeaveModal()">close</span>
+            </div>
+            <form id="leave-form" onsubmit="submitLeave(event)">
+                <div class="form-group">
+                    <label>Leave Type</label>
+                    <select class="form-control" name="type" required>
+                        <option value="Medical">Medical</option>
+                        <option value="Family Emergency">Family Emergency</option>
+                        <option value="Personal">Personal</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Start Date</label>
+                        <input type="date" class="form-control" name="startDate" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>End Date</label>
+                        <input type="date" class="form-control" name="endDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <textarea class="form-control" name="reason" rows="3" required></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeLeaveModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="leave-submit-btn">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- Utilities ---
+        function showToast(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.padding = '12px 24px';
+            toast.style.borderRadius = '8px';
+            toast.style.color = 'white';
+            toast.style.backgroundColor = isError ? 'var(--danger)' : 'var(--success)';
+            toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            toast.style.zIndex = '9999';
+            toast.style.transition = 'opacity 0.3s';
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function showComingSoon(feature) {
+            showToast(`${feature} feature will be available in the next release!`, false);
+        }
+
+        async function fetchAPI(url, options = {}) {
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok) {
+                    if (res.status === 401 && url !== '/api/auth/me') {
+                        window.location.href = '/index.html';
+                        return null;
+                    }
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.error || `HTTP error ${res.status}`);
+                }
+                return await res.json();
+            } catch (err) {
+                console.error(err);
+                if (url !== '/api/auth/me') {
+                    showToast('Error: ' + err.message, true);
+                }
+                throw err;
+            }
+        }
+
+        // State variables
+        let currentUser = null;
+        let subjectsData = [];
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await checkAuth();
+                await Promise.all([
+                    loadDashboard(),
+                    loadToday(),
+                    loadSubjects(),
+                    loadLeaves(),
+                    loadHistory(1),
+                    loadNotifications()
+                ]);
+            } catch (err) {
+                console.error("Initialization error", err);
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        });
+
+        // --- Auth ---
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (!res.ok) {
+                    window.location.href = '/index.html';
+                    return;
+                }
+                currentUser = await res.json();
+                document.getElementById('user-name').textContent = currentUser.name;
+                document.getElementById('user-initial').textContent = currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U';
+                document.getElementById('user-id').textContent = 'ID: ' + currentUser.id;
+            } catch (err) {
+                window.location.href = '/index.html';
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+            } catch(e) {
+                console.error(e);
+            }
+            window.location.href = '/index.html';
+        }
+
+        // --- Tab Switcher ---
+        function switchTab(tabId) {
+            // Hide all tab sections
+            document.querySelectorAll('.student-tab-section').forEach(sec => {
+                sec.style.display = 'none';
+            });
+            // Show active section
+            document.getElementById(`tab-${tabId}`).style.display = 'block';
+
+            // Toggle active state in sidebar and header tabs
+            document.querySelectorAll('.nav-menu .nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.header-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Find matching nav elements and select them
+            if (tabId === 'overview') {
+                document.querySelector('.nav-menu a[onclick*="overview"]').classList.add('active');
+                document.getElementById('tab-btn-overview').classList.add('active');
+                document.getElementById('page-header-title').textContent = "Attendance Management System";
+            } else if (tabId === 'analytics') {
+                document.querySelector('.nav-menu a[onclick*="analytics"]').classList.add('active');
+                document.getElementById('tab-btn-analytics').classList.add('active');
+                document.getElementById('page-header-title').textContent = "Attendance Analytics & Statistics";
+                loadAnalytics();
+            } else if (tabId === 'settings') {
+                document.querySelector('.nav-menu a[onclick*="settings"]').classList.add('active');
+                document.getElementById('tab-btn-settings').classList.add('active');
+                document.getElementById('page-header-title').textContent = "User Profile Settings";
+                loadProfileInSettings();
+            }
+            
+            // Hide notification drawer if switching tabs
+            document.getElementById('notifications-panel').style.display = 'none';
+        }
+
+        // --- Settings Panel ---
+        function loadProfileInSettings() {
+            if (!currentUser) return;
+            document.getElementById('settings-name').value = currentUser.name || '';
+            document.getElementById('settings-username').value = currentUser.username || '';
+            document.getElementById('settings-email').value = currentUser.email || '';
+            document.getElementById('settings-phone').value = currentUser.phone || '';
+            
+            document.getElementById('settings-curr-pwd').value = '';
+            document.getElementById('settings-new-pwd').value = '';
+            document.getElementById('settings-conf-pwd').value = '';
+        }
+
+        async function submitSettings(e) {
+            e.preventDefault();
+            const email = document.getElementById('settings-email').value;
+            const phone = document.getElementById('settings-phone').value;
+            const currPwd = document.getElementById('settings-curr-pwd').value;
+            const newPwd = document.getElementById('settings-new-pwd').value;
+            const confPwd = document.getElementById('settings-conf-pwd').value;
+
+            const payload = { email, phone };
+
+            if (currPwd || newPwd || confPwd) {
+                if (!currPwd || !newPwd || !confPwd) {
+                    showToast('Please fill all password fields to change your password', true);
+                    return;
+                }
+                if (newPwd !== confPwd) {
+                    showToast('New passwords do not match', true);
+                    return;
+                }
+                payload.current_password = currPwd;
+                payload.new_password = newPwd;
+            }
+
+            try {
+                const res = await fetchAPI('/api/auth/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res) {
+                    showToast('Profile settings updated successfully');
+                    // Refresh auth state
+                    await checkAuth();
+                    loadProfileInSettings();
+                }
+            } catch (err) {
+                // Toast shown by fetchAPI
+            }
+        }
+
+        // --- Notifications ---
+        async function loadNotifications() {
+            try {
+                const res = await fetch('/api/auth/notifications');
+                if (!res.ok) return;
+                const list = await res.json();
+                const container = document.getElementById('notifications-list');
+                const badge = document.getElementById('notif-badge');
+                
+                const unread = list.filter(n => n.read === 0 || n.read === '0');
+                if (unread.length > 0) {
+                    badge.textContent = unread.length;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                if (list.length === 0) {
+                    container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-muted);">No notifications</div>';
+                    return;
+                }
+
+                container.innerHTML = list.map(n => `
+                    <div style="padding: 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; background: ${n.read ? 'white' : 'var(--info-light)'}">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight: 600; font-size:13px; color: var(--text-primary);">${n.title}</span>
+                            ${!n.read ? `<button style="border:none; background:none; color:var(--blue-accent); font-size:10px; cursor:pointer;" onclick="markNotificationRead(${n.id}, event)">Mark read</button>` : ''}
+                        </div>
+                        <span style="font-size:12px; color: var(--text-secondary);">${n.message}</span>
+                        <span style="font-size:10px; color: var(--text-muted);">${new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function toggleNotifications() {
+            const panel = document.getElementById('notifications-panel');
+            panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        async function markNotificationRead(id, e) {
+            if (e) e.stopPropagation();
+            try {
+                const res = await fetch(`/api/auth/notifications/${id}/read`, { method: 'PUT' });
+                if (res.ok) {
+                    loadNotifications();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function markAllNotificationsRead() {
+            try {
+                const res = await fetch('/api/auth/notifications/read-all', { method: 'PUT' });
+                if (res.ok) {
+                    loadNotifications();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // --- Help Center Modal ---
+        function openHelpModal() {
+            document.getElementById('help-modal').style.display = 'flex';
+        }
+
+        function closeHelpModal() {
+            document.getElementById('help-modal').style.display = 'none';
+        }
+
+        // --- Analytics Calculations ---
+        function loadAnalytics() {
+            const container = document.getElementById('analytics-subjects-list');
+            const recommendation = document.getElementById('proctor-recommendation');
+            
+            if (subjectsData.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-secondary); text-align:center;">No subjects to display</p>';
+                recommendation.textContent = "Maintain regular attendance to qualify for exam rosters.";
+                return;
+            }
+
+            let worstSubject = null;
+            let worstPercent = 100;
+
+            container.innerHTML = subjectsData.map(s => {
+                const percent = parseFloat(s.percentage) || 0;
+                const target = s.target_attendance || 85;
+                const total = s.total_classes || 0;
+                const present = s.present || 0;
+                
+                if (percent < worstPercent) {
+                    worstPercent = percent;
+                    worstSubject = s;
+                }
+
+                let safeMissText = '';
+                let statusColor = 'var(--success)';
+                
+                if (percent >= target) {
+                    // Safe miss calculation:
+                    // How many absences can we add before we drop below the target percentage?
+                    // target% = present / (total + x) -> total + x = present / (target/100) -> x = present / (target/100) - total
+                    const safeMissCount = Math.floor(present / (target / 100) - total);
+                    if (safeMissCount > 0) {
+                        safeMissText = `<span style="color:var(--success);">Safe: You can miss ${safeMissCount} class${safeMissCount > 1 ? 'es' : ''} safely</span>`;
+                    } else {
+                        safeMissText = '<span style="color:var(--warning);">On edge: Do not miss any classes</span>';
+                        statusColor = 'var(--warning)';
+                    }
+                } else {
+                    // Critical calculation:
+                    // How many consecutive classes must we attend to get back to the target percentage?
+                    // target% = (present + x) / (total + x) -> target/100 * total + target/100 * x = present + x
+                    // x * (1 - target/100) = target/100 * total - present
+                    // x = (target/100 * total - present) / (1 - target/100)
+                    const reqClasses = Math.ceil(((target / 100) * total - present) / (1 - (target / 100)));
+                    safeMissText = `<span style="color:var(--danger); font-weight:600;">Critical: Attend next ${reqClasses} classes consecutively</span>`;
+                    statusColor = 'var(--danger)';
+                }
+
+                return `
+                    <div class="card" style="border-color:${statusColor}; border-left-width:5px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <h5 style="font-weight:600;">${s.name} (${s.code})</h5>
+                            <span style="font-weight:700; color:${statusColor};">${percent.toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percent}%; background: ${statusColor}"></div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:8px; color:var(--text-secondary);">
+                            <span>Total Classes: ${total} | Present: ${present}</span>
+                            ${safeMissText}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Set dynamic proctor tip
+            if (worstSubject && worstPercent < 85) {
+                recommendation.innerHTML = `Your attendance in <strong>${worstSubject.name}</strong> is currently at <strong>${worstPercent.toFixed(1)}%</strong>, which is below the proctor target of 85%. You must attend classes regularly to prevent shortage alerts and secure your examination hall ticket.`;
+            } else {
+                recommendation.textContent = "Great job! Your attendance is healthy across all subjects. Maintain this consistency to qualify for the honors program.";
+            }
+        }
+
+        // --- Data Loading ---
+        async function loadDashboard() {
+            try {
+                const data = await fetchAPI('/api/student/dashboard');
+                if (!data) return;
+                
+                const percent = parseFloat(data.percentage) || 0;
+                
+                // Update circle
+                const circle = document.getElementById('overall-progress');
+                const circumference = 54 * 2 * Math.PI;
+                const offset = circumference - (percent / 100) * circumference;
+                
+                setTimeout(() => {
+                    circle.style.strokeDashoffset = offset;
+                }, 100);
+
+                document.getElementById('overall-percentage').textContent = percent.toFixed(1) + '%';
+                document.getElementById('stat-present').textContent = data.present || 0;
+                document.getElementById('stat-absent').textContent = data.absent || 0;
+                document.getElementById('stat-late').textContent = data.late || 0;
+                
+                // Greeting
+                const userName = document.getElementById('user-name').textContent.split(' ')[0];
+                let greeting = '';
+                if (percent > 90) greeting = `Excellent attendance, ${userName}!`;
+                else if (percent > 80) greeting = `Good attendance, ${userName}!`;
+                else if (percent > 70) greeting = `Keep improving, ${userName}!`;
+                else greeting = `Attendance needs attention, ${userName}!`;
+                
+                document.getElementById('hero-greeting').textContent = greeting;
+            } catch (err) {
+                // handled by fetchAPI
+            }
+        }
+
+        async function loadToday() {
+            try {
+                const data = await fetchAPI('/api/student/today');
+                if (!data) return;
+                const container = document.getElementById('today-classes');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-muted);">No classes today</div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(c => {
+                    const isPresent = c.status === 'P';
+                    const icon = isPresent ? 'check_circle' : 'schedule';
+                    const iconClass = isPresent ? 'completed' : 'upcoming';
+                    return `
+                        <div class="class-item">
+                            <div class="class-icon ${iconClass}">
+                                <span class="material-icons-outlined">${icon}</span>
+                            </div>
+                            <div class="class-details">
+                                <h4>${c.subject_name}</h4>
+                                <p>${c.start_time} - ${c.end_time} | Room: ${c.room}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                document.getElementById('today-classes').innerHTML = '<div style="padding: 16px; text-align: center; color: var(--danger);">Failed to load</div>';
+            }
+        }
+
+        async function loadSubjects() {
+            try {
+                const data = await fetchAPI('/api/student/subjects');
+                if (!data) return;
+                subjectsData = data; // Cache globally for analytics
+                
+                const container = document.getElementById('subjects-grid');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<div style="grid-column: span 2; padding: 16px; text-align: center; color: var(--text-muted);">No subjects found</div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(s => {
+                    const percent = parseFloat(s.percentage) || 0;
+                    const target = s.target_attendance || 75;
+                    
+                    let color = 'var(--warning)';
+                    if (percent >= target) color = 'var(--success)';
+                    else if (percent < 75) color = 'var(--danger)';
+
+                    return `
+                        <div class="subject-card">
+                            <div class="subject-header">
+                                <h4 title="${s.name}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${s.name}</h4>
+                                <span style="color: ${color}">${percent.toFixed(1)}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${percent}%; background: ${color}"></div>
+                            </div>
+                            <div class="subject-meta">${s.code} | Target: ${target}%</div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                document.getElementById('subjects-grid').innerHTML = '<div style="grid-column: span 2; padding: 16px; text-align: center; color: var(--danger);">Failed to load</div>';
+            }
+        }
+
+        async function loadLeaves() {
+            try {
+                const data = await fetchAPI('/api/student/leaves');
+                if (!data) return;
+                
+                document.getElementById('leaves-taken').textContent = data.used || 0;
+                document.getElementById('leaves-avail').textContent = data.available || 0;
+                
+                const container = document.getElementById('leave-list');
+                const leaves = data.leaves || [];
+                
+                if (leaves.length === 0) {
+                    container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-muted);">No leaves requested</div>';
+                    return;
+                }
+
+                container.innerHTML = leaves.map(l => {
+                    let statusClass = 'status-pending';
+                    if (l.status === 'APPROVED') statusClass = 'status-approved';
+                    else if (l.status === 'REJECTED') statusClass = 'status-rejected';
+                    
+                    return `
+                        <div class="leave-item">
+                            <div class="leave-info">
+                                <h5>${l.type}</h5>
+                                <p>${l.start_date} to ${l.end_date}</p>
+                            </div>
+                            <div class="status-badge ${statusClass}">${l.status}</div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                document.getElementById('leave-list').innerHTML = '<div style="padding: 16px; text-align: center; color: var(--danger);">Failed to load</div>';
+            }
+        }
+
+        async function loadHistory(page = 1) {
+            try {
+                const data = await fetchAPI(`/api/student/history?page=\${page}&limit=5`);
+                if (!data) return;
+                
+                const tbody = document.getElementById('history-table');
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">No history found</td></tr>';
+                    document.getElementById('pagination-btns').innerHTML = '';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(h => {
+                    let badgeClass = '';
+                    let statusText = h.status || 'UNKNOWN';
+                    
+                    switch(h.status) {
+                        case 'P': badgeClass = 'status-approved'; statusText = 'PRESENT'; break;
+                        case 'A': badgeClass = 'status-rejected'; statusText = 'ABSENT'; break;
+                        case 'L': badgeClass = 'status-pending'; statusText = 'LATE'; break;
+                        case 'OD': badgeClass = 'status-approved'; statusText = 'DUTY LEAVE'; break;
+                        case 'ML': badgeClass = 'status-pending'; statusText = 'MEDICAL LEAVE'; break;
+                        default: badgeClass = 'status-pending'; break;
+                    }
+                    
+                    return `
+                    <tr>
+                        <td>\${h.date}</td>
+                        <td class="fw-bold">\${h.subject_name}</td>
+                        <td>\${h.instructor_name || '-'}</td>
+                        <td><span class="status-badge \${badgeClass}" style="\${h.status === 'OD' ? 'background: var(--info-light); color: var(--info);' : h.status === 'ML' ? 'background: #f3e8ff; color: #9333ea;' : ''}">\${statusText}</span></td>
+                        <td><span class="material-icons-outlined" style="color: var(--text-muted); cursor:pointer;">info</span></td>
+                    </tr>
+                    `;
+                }).join('');
+
+                // Simple pagination UI
+                document.getElementById('pagination-btns').innerHTML = `
+                    <button class="page-btn" onclick="loadHistory(\${Math.max(1, page - 1)})"><span class="material-icons-outlined" style="font-size:18px;">chevron_left</span></button>
+                    <button class="page-btn active">\${page}</button>
+                    <button class="page-btn" onclick="loadHistory(\${page + 1})"><span class="material-icons-outlined" style="font-size:18px;">chevron_right</span></button>
+                `;
+            } catch (err) {
+                document.getElementById('history-table').innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px; color: var(--danger);">Failed to load</td></tr>';
+            }
+        }
+
+        // --- Actions ---
+        function exportData() {
+            window.location.href = '/api/student/export';
+        }
+
+        // --- Modals ---
+        function openLeaveModal() { 
+            document.getElementById('leave-form').reset();
+            document.getElementById('leave-modal').style.display = 'flex'; 
+        }
+        
+        function closeLeaveModal() { 
+            document.getElementById('leave-modal').style.display = 'none'; 
+        }
+        
+        async function submitLeave(e) {
+            e.preventDefault();
+            const btn = document.getElementById('leave-submit-btn');
+            btn.innerHTML = 'Submitting...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const payload = {
+                type: formData.get('type'),
+                start_date: formData.get('startDate'),
+                end_date: formData.get('endDate'),
+                reason: formData.get('reason')
+            };
+
+            try {
+                const res = await fetch('/api/student/leaves', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.message || 'Failed to submit leave request');
+                }
+
+                showToast('Leave request submitted successfully');
+                closeLeaveModal();
+                loadLeaves();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message, true);
+            } finally {
+                btn.innerHTML = 'Submit Request';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

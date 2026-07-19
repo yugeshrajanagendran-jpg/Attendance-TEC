@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Upload | Attendance @TEC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        :root {
+            --navy-primary: #0a1628;
+            --navy-secondary: #1a3a5c;
+            --blue-accent: #2563eb;
+            --light-blue: #dbeafe;
+            --bg-color: #f5f6fa;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0a1628;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --success-text: #059669;
+            --success-bg: #d1fae5;
+            --warning-text: #d97706;
+            --warning-bg: #fef3c7;
+            --danger-text: #dc2626;
+            --danger-bg: #fee2e2;
+            --sidebar-width: 200px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar - SHARED */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--navy-primary);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            left: 0;
+            top: 0;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-header p {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .nav-links {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item .material-icons-outlined {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: white;
+            color: var(--navy-primary);
+            border-left-color: var(--blue-accent);
+        }
+
+        .sidebar-bottom {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            color: #ef4444;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+        
+        .logout-btn .material-icons-outlined {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header - SHARED */
+        .top-header {
+            height: 70px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .header-left h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header-center {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 32px;
+            position: relative;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 14px;
+            background-color: var(--bg-color);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-bar:focus {
+            border-color: var(--blue-accent);
+            box-shadow: 0 0 0 3px var(--light-blue);
+        }
+
+        .header-center .material-icons-outlined {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 20px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .header-tabs {
+            display: flex;
+            gap: 24px;
+        }
+
+        .tab {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            position: relative;
+            padding-bottom: 24px;
+            top: 12px;
+        }
+
+        .tab.active {
+            color: var(--blue-accent);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--blue-accent);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-secondary);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--navy-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Page specific */
+        .page-container {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-title {
+            margin-bottom: 32px;
+        }
+
+        .page-title h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--navy-primary);
+            margin-bottom: 8px;
+        }
+        
+        .page-title p {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .upload-sections {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .upload-card {
+            flex: 1;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .download-link {
+            color: var(--blue-accent);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .download-link:hover {
+            text-decoration: underline;
+        }
+
+        .dropzone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #fafafa;
+            transition: all 0.2s;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .dropzone.dragover {
+            border-color: var(--blue-accent);
+            background-color: var(--light-blue);
+        }
+
+        .dropzone .material-icons-outlined {
+            font-size: 48px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        
+        .dropzone.dragover .material-icons-outlined {
+            color: var(--blue-accent);
+        }
+
+        .dropzone-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .dropzone-subtext {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--bg-color);
+        }
+
+        .btn-primary {
+            background-color: var(--navy-primary);
+            color: white;
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--navy-secondary);
+        }
+        
+        .btn-primary:disabled {
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .preview-area {
+            display: none;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .preview-header {
+            background-color: var(--bg-color);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .remove-file {
+            color: var(--danger-text);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        
+        .preview-table th, .preview-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .preview-table th {
+            background-color: var(--bg-color);
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .alert-box {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            display: none;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .alert-box.error {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid #fecaca;
+        }
+
+        .alert-box.success {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+            border: 1px solid #a7f3d0;
+        }
+
+        /* Recent Uploads Table */
+        .recent-uploads-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .recent-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .recent-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .recent-table td {
+            padding: 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-success { background-color: var(--success-bg); color: var(--success-text); }
+        .badge-warning { background-color: var(--warning-bg); color: var(--warning-text); }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background-color: var(--navy-primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>ATTENDANCE <span style="color: var(--text-muted); font-weight: 300;">@TEC</span></h1>
+            <p>Reliable Proctor System</p>
+        </div>
+        <nav class="nav-links">
+            <a href="admin.html" class="nav-item">
+                <span class="material-icons-outlined">dashboard</span>
+                Dashboard
+            </a>
+            <a href="admin-upload.html" class="nav-item active">
+                <span class="material-icons-outlined">groups</span>
+                Roster
+            </a>
+            <a href="admin-modify.html" class="nav-item">
+                <span class="material-icons-outlined">fact_check</span>
+                Attendance
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-outlined">assessment</span>
+                Reports
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-outlined">calendar_today</span>
+                Schedules
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-outlined">settings</span>
+                Settings
+            </a>
+        </nav>
+        <div class="sidebar-bottom">
+            <a href="#" class="nav-item" style="padding-left: 0;">
+                <span class="material-icons-outlined">help_outline</span>
+                Help Center
+            </a>
+            <a href="#" class="logout-btn" onclick="logout(event)">
+                <span class="material-icons-outlined">logout</span>
+                Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <h2>Department Oversight</h2>
+            </div>
+            <div class="header-center">
+                <span class="material-icons-outlined">search</span>
+                <input type="text" class="search-bar" placeholder="Search faculty, classes...">
+            </div>
+            <div class="header-right">
+                <div class="header-tabs">
+                    <a href="#" class="tab active">Overview</a>
+                    <a href="#" class="tab">Analytics</a>
+                    <a href="#" class="tab">Admin Panel</a>
+                </div>
+                <div class="header-icons">
+                    <span class="material-icons-outlined">notifications</span>
+                    <span class="material-icons-outlined">schedule</span>
+                    <div class="avatar">H</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-container">
+            <div class="page-title">
+                <h1>Bulk Data Upload</h1>
+                <p>Upload student data and timetables in bulk to update the system.</p>
+            </div>
+
+            <div class="upload-sections">
+                <!-- Students Upload -->
+                <div class="upload-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="material-icons-outlined">person_add</span> Upload Student Data
+                        </div>
+                        <a href="#" onclick="event.preventDefault(); window.location.href='/api/admin/templates/students'" class="download-link">
+                            <span class="material-icons-outlined" style="font-size: 16px;">download</span> Download Template
+                        </a>
+                    </div>
+                    
+                    
+
+                    <div class="dropzone" id="student-dropzone" onclick="document.getElementById('student-file').click()">
+                        <span class="material-icons-outlined">cloud_upload</span>
+                        <div class="dropzone-text">Drag & drop your file here</div>
+                        <div class="dropzone-subtext">or</div>
+                        <button class="btn btn-outline" onclick="event.stopPropagation(); document.getElementById('student-file').click()">Browse Files</button>
+                    </div>
+                    <input type="file" id="student-file" class="file-input" accept=".csv, .xlsx">
+
+                    <div class="preview-area" id="student-preview">
+                        <div class="preview-header">
+                            <div class="file-info">
+                                <span class="material-icons-outlined" style="color: var(--blue-accent);">description</span>
+                                <span id="student-filename">data.csv</span>
+                                <span style="color: var(--text-muted); font-size: 12px;" id="student-filesize">(1.2 MB)</span>
+                            </div>
+                            <span class="material-icons-outlined remove-file" onclick="clearFile('student')">close</span>
+                        </div>
+                        <div style="padding: 12px; font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color);">
+                            Previewing first 3 rows (<span id="student-count">0</span> records found)
+                        </div>
+                        <table class="preview-table">
+                            <thead>
+                                <tr><th>Reg No</th><th>Name</th><th>Email</th></tr>
+                            </thead>
+                            <tbody id="student-preview-body">
+                                <!-- JS injected -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button class="btn btn-primary" id="student-upload-btn" disabled onclick="uploadData('student')">
+                        Upload Students
+                    </button>
+                    <div class="alert-box" id="student-alert" style="margin-top: 16px; margin-bottom: 0;"></div>
+                </div>
+
+                <!-- Timetable Upload -->
+                <div class="upload-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="material-icons-outlined">calendar_today</span> Upload Timetable
+                        </div>
+                        <a href="#" onclick="event.preventDefault(); window.location.href='/api/admin/templates/timetable'" class="download-link">
+                            <span class="material-icons-outlined" style="font-size: 16px;">download</span> Download Template
+                        </a>
+                    </div>
+                    
+                    
+
+                    <div class="dropzone" id="timetable-dropzone" onclick="document.getElementById('timetable-file').click()">
+                        <span class="material-icons-outlined">cloud_upload</span>
+                        <div class="dropzone-text">Drag & drop your file here</div>
+                        <div class="dropzone-subtext">or</div>
+                        <button class="btn btn-outline" onclick="event.stopPropagation(); document.getElementById('timetable-file').click()">Browse Files</button>
+                    </div>
+                    <input type="file" id="timetable-file" class="file-input" accept=".csv, .xlsx">
+
+                    <div class="preview-area" id="timetable-preview">
+                        <div class="preview-header">
+                            <div class="file-info">
+                                <span class="material-icons-outlined" style="color: var(--blue-accent);">description</span>
+                                <span id="timetable-filename">data.csv</span>
+                                <span style="color: var(--text-muted); font-size: 12px;" id="timetable-filesize">(1.2 MB)</span>
+                            </div>
+                            <span class="material-icons-outlined remove-file" onclick="clearFile('timetable')">close</span>
+                        </div>
+                        <div style="padding: 12px; font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color);">
+                            Previewing first 3 rows (<span id="timetable-count">0</span> records found)
+                        </div>
+                        <table class="preview-table">
+                            <thead>
+                                <tr><th>Day</th><th>Hour</th><th>Subject</th><th>Faculty</th></tr>
+                            </thead>
+                            <tbody id="timetable-preview-body">
+                                <!-- JS injected -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button class="btn btn-primary" id="timetable-upload-btn" disabled onclick="uploadData('timetable')">
+                        Upload Timetable
+                    </button>
+                    <div class="alert-box" id="timetable-alert" style="margin-top: 16px; margin-bottom: 0;"></div>
+                </div>
+            </div>
+
+            <!-- Recent Uploads -->
+            <div class="recent-uploads-card">
+                <div class="card-header" style="border: none; padding-bottom: 0;">
+                    <div class="card-title">Recent Uploads</div>
+                </div>
+                <table class="recent-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Records</th>
+                            <th>Status</th>
+                            <th>Uploaded By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Today, 10:42 AM</td>
+                            <td><span style="display: flex; align-items: center; gap: 8px;"><span class="material-icons-outlined" style="font-size: 16px;">person_add</span> Student Data</span></td>
+                            <td>120</td>
+                            <td><span class="badge badge-success">Completed</span></td>
+                            <td>HOD (You)</td>
+                        </tr>
+                        <tr>
+                            <td>Yesterday, 2:15 PM</td>
+                            <td><span style="display: flex; align-items: center; gap: 8px;"><span class="material-icons-outlined" style="font-size: 16px;">calendar_today</span> Timetable</span></td>
+                            <td>45</td>
+                            <td><span class="badge badge-success">Completed</span></td>
+                            <td>Admin Staff</td>
+                        </tr>
+                        <tr>
+                            <td>Mon, 9:00 AM</td>
+                            <td><span style="display: flex; align-items: center; gap: 8px;"><span class="material-icons-outlined" style="font-size: 16px;">person_add</span> Student Data</span></td>
+                            <td>2</td>
+                            <td><span class="badge badge-warning">Partial (3 Errors)</span></td>
+                            <td>HOD (You)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        let selectedFiles = { student: null, timetable: null };
+
+        async function init() {
+            try {
+                const auth = await fetch('/api/auth/me');
+                if (!auth.ok) return window.location.href = '/index.html';
+            } catch(e) {
+                return window.location.href = '/index.html';
+            }
+            setupDragAndDrop('student');
+            setupDragAndDrop('timetable');
+        }
+
+        function setupDragAndDrop(type) {
+            const dropzone = document.getElementById(`${type}-dropzone`);
+            const input = document.getElementById(`${type}-file`);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                let dt = e.dataTransfer;
+                let files = dt.files;
+                handleFiles(files, type);
+            });
+
+            input.addEventListener('change', function() {
+                handleFiles(this.files, type);
+            });
+        }
+
+        function handleFiles(files, type) {
+            if (files.length > 0) {
+                const file = files[0];
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (ext !== 'csv' && ext !== 'xlsx') {
+                    showAlert(type, 'Only .csv and .xlsx files are allowed.', 'error');
+                    return;
+                }
+
+                selectedFiles[type] = file;
+                
+                document.getElementById(`${type}-dropzone`).style.display = 'none';
+                document.getElementById(`${type}-preview`).style.display = 'block';
+                document.getElementById(`${type}-upload-btn`).disabled = false;
+                
+                document.getElementById(`${type}-filename`).textContent = file.name;
+                document.getElementById(`${type}-filesize`).textContent = `(${(file.size / 1024).toFixed(1)} KB)`;
+                
+                parseAndPreview(file, type);
+            }
+        }
+
+        function clearFile(type) {
+            selectedFiles[type] = null;
+            document.getElementById(`${type}-file`).value = '';
+            document.getElementById(`${type}-dropzone`).style.display = 'flex';
+            document.getElementById(`${type}-preview`).style.display = 'none';
+            document.getElementById(`${type}-upload-btn`).disabled = true;
+            hideAlert(type);
+        }
+
+        function parseAndPreview(file, type) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\\n').filter(l => l.trim() !== '');
+                const count = Math.max(0, lines.length - 1);
+                document.getElementById(`${type}-count`).textContent = count;
+                
+                const tbody = document.getElementById(`${type}-preview-body`);
+                tbody.innerHTML = '';
+                
+                const rowsToShow = Math.min(3, lines.length - 1);
+                for(let i=1; i<=rowsToShow; i++) {
+                    const cols = lines[i].split(',');
+                    if (type === 'student') {
+                        tbody.innerHTML += `<tr><td>${cols[0]||'--'}</td><td>${cols[1]||'--'}</td><td>${cols[2]||'--'}</td></tr>`;
+                    } else {
+                        tbody.innerHTML += `<tr><td>${cols[0]||'--'}</td><td>${cols[1]||'--'}</td><td>${cols[2]||'--'}</td><td>${cols[3]||'--'}</td></tr>`;
+                    }
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function uploadData(type) {
+            const file = selectedFiles[type];
+            if (!file) return;
+
+            const btn = document.getElementById(`${type}-upload-btn`);
+            btn.innerHTML = '<span class="material-icons-outlined" style="animation: spin 1s linear infinite;">autorenew</span> Uploading...';
+            btn.disabled = true;
+            hideAlert(type);
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const endpoint = type === 'student' ? '/api/admin/upload/students' : '/api/admin/upload/timetable';
+                
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Upload failed');
+                
+                if (data.errors && data.errors.length > 0) {
+                     let errorHtml = `<div>Imported ${data.imported || 0} out of ${data.total || 0} records with ${data.errors.length} errors.</div><ul style="margin-top: 8px; margin-left: 20px; font-size: 12px; max-height: 150px; overflow-y: auto; width: 100%;">`;
+                     data.errors.forEach(err => {
+                         errorHtml += `<li>${err}</li>`;
+                     });
+                     errorHtml += `</ul>`;
+                     showAlert(type, errorHtml, 'error');
+                } else {
+                     showAlert(type, data.message || `Successfully imported ${data.imported || 0} records.`, 'success');
+                }
+                showToast("Upload processed");
+                
+                btn.innerHTML = `Upload ${type === 'student' ? 'Students' : 'Timetable'}`;
+                
+            } catch (e) {
+                showAlert(type, e.message || 'Upload failed. Please check the file format.', 'error');
+                btn.innerHTML = `Upload ${type === 'student' ? 'Students' : 'Timetable'}`;
+                btn.disabled = false;
+            }
+        }
+
+        function showAlert(type, message, status) {
+            const alertBox = document.getElementById(`${type}-alert`);
+            alertBox.className = `alert-box ${status}`;
+            const icon = status === 'success' ? 'check_circle' : 'error';
+            alertBox.innerHTML = `<span class="material-icons-outlined">${icon}</span> <div style="flex: 1; word-break: break-word;">${message}</div>`;
+            alertBox.style.display = 'flex';
+        }
+
+        function hideAlert(type) {
+            document.getElementById(`${type}-alert`).style.display = 'none';
+        }
+
+        async function logout(e) {
+            e.preventDefault();
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+            } catch(e) {}
+            window.location.href = '/index.html';
+        }
+
+        function showToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<span class="material-icons-outlined">check_circle</span> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modify Attendance | Attendance @TEC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        :root {
+            --navy-primary: #0a1628;
+            --navy-secondary: #1a3a5c;
+            --blue-accent: #2563eb;
+            --light-blue: #dbeafe;
+            --bg-color: #f5f6fa;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0a1628;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            
+            --status-p: #059669; /* Present - Green */
+            --status-a: #dc2626; /* Absent - Red */
+            --status-l: #d97706; /* Late - Amber */
+            --status-od: #2563eb; /* On Duty - Blue */
+            --status-ml: #7c3aed; /* Medical - Purple */
+            
+            --sidebar-width: 200px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar - SHARED */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--navy-primary);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            left: 0;
+            top: 0;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-header p {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .nav-links {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item .material-icons-outlined {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: white;
+            color: var(--navy-primary);
+            border-left-color: var(--blue-accent);
+        }
+
+        .sidebar-bottom {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            color: #ef4444;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+        
+        .logout-btn .material-icons-outlined {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header - SHARED */
+        .top-header {
+            height: 70px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .header-left h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header-center {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 32px;
+            position: relative;
+        }
+
+        .search-bar-header {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 14px;
+            background-color: var(--bg-color);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-bar-header:focus {
+            border-color: var(--blue-accent);
+            box-shadow: 0 0 0 3px var(--light-blue);
+        }
+
+        .header-center .material-icons-outlined {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 20px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .header-tabs {
+            display: flex;
+            gap: 24px;
+        }
+
+        .tab {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            position: relative;
+            padding-bottom: 24px;
+            top: 12px;
+        }
+
+        .tab.active {
+            color: var(--blue-accent);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--blue-accent);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-secondary);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--navy-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Page Content */
+        .page-container {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-title {
+            margin-bottom: 24px;
+        }
+
+        .page-title h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--navy-primary);
+            margin-bottom: 8px;
+        }
+        
+        .page-title p {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* Search Filter Bar */
+        .filter-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            bottom: 10px;
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .form-control.with-icon {
+            padding-left: 36px;
+        }
+
+        .form-control:focus {
+            border-color: var(--blue-accent);
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--navy-primary);
+            color: white;
+            align-self: flex-end;
+            height: 41px;
+        }
+
+        .btn-primary:hover { background-color: var(--navy-secondary); }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            align-self: flex-end;
+            height: 41px;
+        }
+        
+        .btn-outline:hover { background-color: var(--bg-color); }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            height: auto;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            background-color: #fafafa;
+        }
+
+        td {
+            padding: 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+            min-width: 60px;
+        }
+        
+        .status-badge.P { background-color: #d1fae5; color: var(--status-p); }
+        .status-badge.A { background-color: #fee2e2; color: var(--status-a); }
+        .status-badge.L { background-color: #fef3c7; color: var(--status-l); }
+        .status-badge.OD { background-color: #dbeafe; color: var(--status-od); }
+        .status-badge.ML { background-color: #f3e8ff; color: var(--status-ml); }
+
+        .inline-edit-select {
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-size: 12px;
+            outline: none;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        .modal-close:hover { color: var(--text-primary); }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+            background-color: var(--bg-color);
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .info-item label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .info-item div {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-options {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .status-radio {
+            display: none;
+        }
+
+        .status-label {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .status-radio:checked + .status-label.P { background-color: var(--status-p); color: white; border-color: var(--status-p); }
+        .status-radio:checked + .status-label.A { background-color: var(--status-a); color: white; border-color: var(--status-a); }
+        .status-radio:checked + .status-label.L { background-color: var(--status-l); color: white; border-color: var(--status-l); }
+        .status-radio:checked + .status-label.OD { background-color: var(--status-od); color: white; border-color: var(--status-od); }
+        .status-radio:checked + .status-label.ML { background-color: var(--status-ml); color: white; border-color: var(--status-ml); }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background-color: #fafafa;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background-color: var(--navy-primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .toast.show { transform: translateX(0); }
+        
+        .spinner {
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top: 3px solid var(--blue-accent);
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>ATTENDANCE <span style="color: var(--text-muted); font-weight: 300;">@TEC</span></h1>
+            <p>Reliable Proctor System</p>
+        </div>
+        <nav class="nav-links">
+            <a href="admin.html" class="nav-item">
+                <span class="material-icons-outlined">dashboard</span> Dashboard
+            </a>
+            <a href="admin-upload.html" class="nav-item">
+                <span class="material-icons-outlined">groups</span> Roster
+            </a>
+            <a href="admin-modify.html" class="nav-item active">
+                <span class="material-icons-outlined">fact_check</span> Attendance
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-outlined">assessment</span> Reports
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-outlined">calendar_today</span> Schedules
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-outlined">settings</span> Settings
+            </a>
+        </nav>
+        <div class="sidebar-bottom">
+            <a href="#" class="nav-item" style="padding-left: 0;">
+                <span class="material-icons-outlined">help_outline</span> Help Center
+            </a>
+            <a href="#" class="logout-btn" onclick="logout(event)">
+                <span class="material-icons-outlined">logout</span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-left"><h2>Department Oversight</h2></div>
+            <div class="header-center">
+                <span class="material-icons-outlined">search</span>
+                <input type="text" class="search-bar-header" placeholder="Search faculty, classes...">
+            </div>
+            <div class="header-right">
+                <div class="header-tabs">
+                    <a href="#" class="tab active">Overview</a>
+                    <a href="#" class="tab">Analytics</a>
+                    <a href="#" class="tab">Admin Panel</a>
+                </div>
+                <div class="header-icons">
+                    <span class="material-icons-outlined">notifications</span>
+                    <span class="material-icons-outlined">schedule</span>
+                    <div class="avatar">H</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-container">
+            <div class="page-title">
+                <h1>Modify Attendance Records</h1>
+                <p>Search and edit student attendance records. Changes will be logged.</p>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="card">
+                <div class="filter-row">
+                    <div class="input-group" style="flex: 2;">
+                        <label>Search Student</label>
+                        <span class="material-icons-outlined input-icon">search</span>
+                        <input type="text" id="search-input" class="form-control with-icon" placeholder="Name or Reg. No">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Subject</label>
+                        <select id="subject-filter" class="form-control">
+                            <option value="">All Subjects</option>
+                            <!-- JS injected -->
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Date From</label>
+                        <input type="date" id="date-from" class="form-control">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Date To</label>
+                        <input type="date" id="date-to" class="form-control">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="searchAttendance()">Search</button>
+                    <button class="btn btn-outline" onclick="resetFilters()">Reset</button>
+                </div>
+            </div>
+
+            <!-- Results Table -->
+            <div class="card">
+                <div class="table-container">
+                    <table id="attendance-table">
+                        <thead>
+                            <tr>
+                                <th>Reg. No</th>
+                                <th>Student Name</th>
+                                <th>Subject</th>
+                                <th>Date & Hour</th>
+                                <th>Current Status</th>
+                                <th>Modified By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- JS injected -->
+                            <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Perform a search to view records</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Edit Attendance</h3>
+                <span class="material-icons-outlined modal-close" onclick="closeModal()">close</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-info-grid">
+                    <div class="info-item">
+                        <label>Student Name</label>
+                        <div id="m-name">John Doe (TEC001)</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Subject</label>
+                        <div id="m-subject">Data Structures</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Date</label>
+                        <div id="m-date">12 Oct 2023, Hr 2</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Current Status</label>
+                        <div><span class="status-badge" id="m-curr-status">Present</span></div>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 14px; margin-bottom: 12px;">New Status</h4>
+                <div class="status-options">
+                    <label>
+                        <input type="radio" name="newStatus" value="P" class="status-radio">
+                        <div class="status-label P">Present</div>
+                    </label>
+                    <label>
+                        <input type="radio" name="newStatus" value="A" class="status-radio">
+                        <div class="status-label A">Absent</div>
+                    </label>
+                    <label>
+                        <input type="radio" name="newStatus" value="L" class="status-radio">
+                        <div class="status-label L">Late</div>
+                    </label>
+                    <label>
+                        <input type="radio" name="newStatus" value="OD" class="status-radio">
+                        <div class="status-label OD">On Duty</div>
+                    </label>
+                    <label>
+                        <input type="radio" name="newStatus" value="ML" class="status-radio">
+                        <div class="status-label ML">Medical</div>
+                    </label>
+                </div>
+
+                <div class="input-group">
+                    <label style="margin-bottom: 8px;">Reason for modification (Required)</label>
+                    <textarea id="m-reason" class="form-control" placeholder="Explain why this record is being modified..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveModification()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        let currentRecords = [];
+        let editingId = null;
+
+        const STATUS_MAP = {
+            'P': 'Present', 'A': 'Absent', 'L': 'Late', 'OD': 'On Duty', 'ML': 'Medical'
+        };
+
+        async function init() {
+            try {
+                const auth = await fetch('/api/auth/me');
+                if (!auth.ok) return window.location.href = '/index.html';
+            } catch(e) {
+                return window.location.href = '/index.html';
+            }
+            await loadSubjects();
+            searchAttendance();
+        }
+
+        async function loadSubjects() {
+            const select = document.getElementById('subject-filter');
+            try {
+                const res = await fetch('/api/admin/subjects');
+                if(res.ok) {
+                    const subjects = await res.json();
+                    subjects.forEach(s => {
+                        select.innerHTML += `<option value="\${s.id}">\${s.name}</option>`;
+                    });
+                }
+            } catch(e) {}
+        }
+
+        async function searchAttendance() {
+            const query = document.getElementById('search-input').value;
+            const subject_id = document.getElementById('subject-filter').value;
+            const date_from = document.getElementById('date-from').value;
+            const date_to = document.getElementById('date-to').value;
+            
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '<tr><td colspan="7"><div class="spinner"></div></td></tr>';
+
+            try {
+                const params = new URLSearchParams();
+                if (query) params.set('query', query);
+                if (subject_id) params.set('subject_id', subject_id);
+                if (date_from) params.set('date_from', date_from);
+                if (date_to) params.set('date_to', date_to);
+
+                const res = await fetch(`/api/admin/attendance/search?\${params}`);
+                if(!res.ok) throw new Error();
+                const data = await res.json();
+
+                currentRecords = data;
+                renderTable(data);
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="7" style="color:red; text-align:center;">Error loading records</td></tr>';
+            }
+        }
+
+        function renderTable(records) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            if (records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No records found</td></tr>';
+                return;
+            }
+
+            records.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 500;">\${r.reg_no}</td>
+                    <td>\${r.student_name}</td>
+                    <td>\${r.subject_name}</td>
+                    <td>\${r.date}, Hr \${r.hour}</td>
+                    <td><span class="status-badge \${r.status}">\${STATUS_MAP[r.status] || r.status}</span></td>
+                    <td style="color: var(--text-muted); font-size: 13px;">\${r.modified_by || '--'}</td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="openModal(\${r.id})">
+                            <span class="material-icons-outlined" style="font-size: 16px;">edit</span> Edit
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('subject-filter').value = '';
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+            searchAttendance();
+        }
+
+        function openModal(id) {
+            const record = currentRecords.find(r => r.id === id);
+            if (!record) return;
+            
+            editingId = id;
+            document.getElementById('m-name').textContent = `\${record.student_name} (\${record.reg_no})`;
+            document.getElementById('m-subject').textContent = record.subject_name;
+            document.getElementById('m-date').textContent = `\${record.date}, Hr \${record.hour}`;
+            
+            const currBadge = document.getElementById('m-curr-status');
+            currBadge.className = `status-badge \${record.status}`;
+            currBadge.textContent = STATUS_MAP[record.status];
+
+            const radios = document.getElementsByName('newStatus');
+            for(let r of radios) {
+                r.checked = (r.value === record.status);
+            }
+            
+            document.getElementById('m-reason').value = '';
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            editingId = null;
+        }
+
+        async function saveModification() {
+            const reason = document.getElementById('m-reason').value.trim();
+            if (!reason) {
+                showToast("Please provide a reason for modification", "error");
+                return;
+            }
+
+            const radios = document.getElementsByName('newStatus');
+            let newStatus = 'P';
+            for(let r of radios) {
+                if(r.checked) newStatus = r.value;
+            }
+
+            try {
+                const res = await fetch(`/api/admin/attendance/\${editingId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ status: newStatus, reason: reason })
+                });
+                if(!res.ok) throw new Error();
+                const data = await res.json();
+                
+                showToast(data.message || "Attendance record updated successfully");
+                closeModal();
+                searchAttendance();
+            } catch(e) {
+                showToast("Failed to update record", "error");
+            }
+        }
+
+        async function logout(e) {
+            e.preventDefault();
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+            } catch(e) {}
+            window.location.href = '/index.html';
+        }
+
+        function showToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            const icon = type === 'error' ? 'error' : 'check_circle';
+            toast.innerHTML = `<span class="material-icons-outlined">\${icon}</span> \${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

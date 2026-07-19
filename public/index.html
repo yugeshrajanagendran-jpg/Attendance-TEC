@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Attendance @TEC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        :root {
+            --navy-primary: #0a1628;
+            --navy-secondary: #1a3a5c;
+            --blue-accent: #2563eb;
+            --bg-color: #f5f6fa;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-primary: #0a1628;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --danger: #dc2626;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-color); display: flex; height: 100vh; color: var(--text-primary); }
+
+        .left-panel {
+            width: 35%;
+            background: linear-gradient(135deg, var(--navy-primary), var(--navy-secondary));
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(37,99,235,0.1) 0%, transparent 60%);
+        }
+        .branding { z-index: 1; }
+        .branding .icon { font-size: 64px; color: var(--blue-accent); margin-bottom: 24px; }
+        .branding h1 { font-size: 36px; font-weight: 700; margin-bottom: 16px; line-height: 1.2; }
+        .branding p { font-size: 18px; color: #cbd5e1; line-height: 1.6; }
+
+        .right-panel {
+            width: 65%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 480px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+        .tab {
+            flex: 1;
+            padding: 16px 0;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab:hover { color: var(--text-secondary); }
+        .tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--blue-accent);
+        }
+
+        .tab-content { padding: 40px; display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .header { margin-bottom: 32px; }
+        .header h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        .header p { color: var(--text-secondary); font-size: 14px; }
+
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary); }
+        .input-wrapper { position: relative; }
+        .input-wrapper .material-icons-outlined {
+            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 20px;
+        }
+        .form-control {
+            width: 100%;
+            height: 48px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px 12px 48px;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--blue-accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .toggle-pwd {
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); cursor: pointer; font-size: 20px;
+        }
+
+        .options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; font-size: 14px; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-secondary); }
+        .forgot-link { color: var(--blue-accent); text-decoration: none; font-weight: 500; }
+        .forgot-link:hover { text-decoration: underline; }
+
+        .btn-submit {
+            width: 100%; height: 44px;
+            background: var(--navy-primary); color: white;
+            border: none; border-radius: 8px;
+            font-weight: 600; font-size: 16px;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn-submit:hover { background: var(--navy-secondary); }
+        .btn-submit:disabled { background: var(--text-muted); cursor: not-allowed; }
+
+        .error-message { color: var(--danger); font-size: 14px; margin-top: 16px; text-align: center; min-height: 20px; }
+
+        .footer {
+            position: absolute; bottom: 32px; left: 32px; right: 32px;
+            display: flex; justify-content: space-between;
+            color: var(--text-muted); font-size: 14px;
+        }
+        .footer-links a { color: var(--text-muted); text-decoration: none; margin-left: 16px; }
+        .footer-links a:hover { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+
+    <div class="left-panel">
+        <div class="branding">
+            <span class="material-icons-outlined icon">verified_user</span>
+            <h1>ATTENDANCE<br>@TEC</h1>
+            <p>Secure, reliable, and real-time academic proctoring and attendance management system.</p>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="login-card">
+            <div class="tabs">
+                <div class="tab active" data-target="student">
+                    <span class="material-icons-outlined">person</span> Student
+                </div>
+                <div class="tab" data-target="faculty">
+                    <span class="material-icons-outlined">business_center</span> Faculty
+                </div>
+                <div class="tab" data-target="admin">
+                    <span class="material-icons-outlined">settings</span> HOD/Admin
+                </div>
+            </div>
+
+            <!-- Student Form -->
+            <div class="tab-content active" id="student-content">
+                <div class="header">
+                    <h2>Student Login</h2>
+                    <p>Access your academic attendance records.</p>
+                </div>
+                <form id="student-form" onsubmit="handleLogin(event, 'student')">
+                    <div class="form-group">
+                        <label>Register Number</label>
+                        <div class="input-wrapper">
+                            <span class="material-icons-outlined">person_outline</span>
+                            <input type="text" class="form-control" name="username" placeholder="e.g. 2024CS101" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-wrapper">
+                            <span class="material-icons-outlined">lock</span>
+                            <input type="password" class="form-control" name="password" placeholder="••••••••" required>
+                            <span class="material-icons-outlined toggle-pwd" onclick="togglePassword(this)">visibility_off</span>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="remember"> Remember this device
+                        </label>
+                        <a href="#" class="forgot-link">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn-submit" id="student-btn">
+                        Authenticate <span class="material-icons-outlined">arrow_forward</span>
+                    </button>
+                    <div class="error-message" id="student-error"></div>
+                </form>
+            </div>
+
+            <!-- Faculty Form -->
+            <div class="tab-content" id="faculty-content">
+                <div class="header">
+                    <h2>Faculty Login</h2>
+                    <p>Manage attendance and academic records.</p>
+                </div>
+                <form id="faculty-form" onsubmit="handleLogin(event, 'faculty')">
+                    <div class="form-group">
+                        <label>Faculty ID</label>
+                        <div class="input-wrapper">
+                            <span class="material-icons-outlined">badge</span>
+                            <input type="text" class="form-control" name="username" placeholder="e.g. FAC2024001" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-wrapper">
+                            <span class="material-icons-outlined">lock</span>
+                            <input type="password" class="form-control" name="password" placeholder="••••••••" required>
+                            <span class="material-icons-outlined toggle-pwd" onclick="togglePassword(this)">visibility_off</span>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <label class="checkbox-label">
+                            <input type="checkbox"> Remember this device
+                        </label>
+                        <a href="#" class="forgot-link">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn-submit" id="faculty-btn">
+                        Authenticate <span class="material-icons-outlined">arrow_forward</span>
+                    </button>
+                    <div class="error-message" id="faculty-error"></div>
+                </form>
+            </div>
+
+            <!-- Admin Form -->
+            <div class="tab-content" id="admin-content">
+                <div class="header">
+                    <h2>HOD/Admin Login</h2>
+                    <p>Department oversight and administration.</p>
+                </div>
+                <form id="admin-form" onsubmit="handleLogin(event, 'admin')">
+                    <div class="form-group">
+                        <label>Admin ID</label>
+                        <div class="input-wrapper">
+                            <span class="material-icons-outlined">admin_panel_settings</span>
+                            <input type="text" class="form-control" name="username" placeholder="e.g. HOD2024001" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-wrapper">
+                            <span class="material-icons-outlined">lock</span>
+                            <input type="password" class="form-control" name="password" placeholder="••••••••" required>
+                            <span class="material-icons-outlined toggle-pwd" onclick="togglePassword(this)">visibility_off</span>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <label class="checkbox-label">
+                            <input type="checkbox"> Remember this device
+                        </label>
+                        <a href="#" class="forgot-link">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn-submit" id="admin-btn">
+                        Authenticate <span class="material-icons-outlined">arrow_forward</span>
+                    </button>
+                    <div class="error-message" id="admin-error"></div>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div>© 2024 Attendance @TEC v4.2</div>
+            <div class="footer-links">
+                <a href="#">Help Center</a>
+                <a href="#">Privacy</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.target}-content`).classList.add('active');
+            });
+        });
+
+        // Password Toggle
+        function togglePassword(icon) {
+            const input = icon.previousElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility_off';
+            }
+        }
+
+        // Login Handler
+        async function handleLogin(e, role) {
+            e.preventDefault();
+            const form = e.target;
+            const username = form.username.value;
+            const password = form.password.value;
+            const btn = document.getElementById(`${role}-btn`);
+            const errorDiv = document.getElementById(`${role}-error`);
+
+            // Loading state
+            btn.disabled = true;
+            const origContent = btn.innerHTML;
+            btn.innerHTML = `<span class="material-icons-outlined" style="animation: spin 1s linear infinite;">loop</span> Authenticating...`;
+            errorDiv.textContent = '';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (data.user.role === 'student') window.location.href = '/student.html';
+                    else if (data.user.role === 'faculty') window.location.href = '/faculty.html';
+                    else window.location.href = '/admin.html';
+                } else {
+                    errorDiv.textContent = data.message || 'Authentication failed. Please check your credentials.';
+                    btn.disabled = false;
+                    btn.innerHTML = origContent;
+                }
+            } catch (err) {
+                // Mock behavior for UI demonstration
+                setTimeout(() => {
+                    if (username && password) {
+                        if (role === 'student') window.location.href = '/student.html';
+                        else if (role === 'faculty') window.location.href = '/faculty.html';
+                        else window.location.href = '/admin.html';
+                    } else {
+                        errorDiv.textContent = 'Network error. Please try again later.';
+                        btn.disabled = false;
+                        btn.innerHTML = origContent;
+                    }
+                }, 1000);
+            }
+        }
+    </script>
+    <style>
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</body>
+</html>
