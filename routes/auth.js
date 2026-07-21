@@ -5,7 +5,7 @@ module.exports = function(db) {
     const router = express.Router();
 
     router.post('/login', (req, res) => {
-        const { username, password } = req.body;
+        const { username, password, role } = req.body;
         if (!username || !password) return res.status(400).json({ success: false, message: 'Missing credentials' });
 
         try {
@@ -14,15 +14,20 @@ module.exports = function(db) {
 
             const valid = bcrypt.compareSync(password, user.password);
             if (!valid) return res.status(401).json({ success: false, message: 'Invalid credentials. Please check your username and password.' });
+            if (role && role !== user.role) return res.status(403).json({ success: false, message: 'Use the login area assigned to your role.' });
 
-            req.session.user = {
+            req.session.regenerate((sessionError) => {
+                if (sessionError) return res.status(500).json({ success: false, message: 'Could not start session' });
+                req.session.user = {
                 id: user.id,
                 username: user.username,
                 role: user.role,
                 name: user.name
-            };
-
-            res.json({ success: true, user: req.session.user });
+                };
+                db.prepare('INSERT INTO login_history (user_id, ip_address, user_agent) VALUES (?, ?, ?)')
+                    .run(user.id, req.ip, req.get('user-agent') || null);
+                res.json({ success: true, user: req.session.user });
+            });
         } catch (error) {
             res.status(500).json({ success: false, message: 'Server error' });
         }

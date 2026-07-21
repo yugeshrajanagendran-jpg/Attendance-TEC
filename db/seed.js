@@ -1,6 +1,15 @@
 const bcrypt = require('bcryptjs');
 
 function seedDB(db) {
+    // These records are idempotent and also apply to an already-seeded sample DB.
+    const superadminPassword = bcrypt.hashSync(process.env.SUPERADMIN_PASSWORD || 'super123', 10);
+    db.prepare(`INSERT OR IGNORE INTO users (username, password, role, name)
+                VALUES (?, ?, 'superadmin', ?)`)
+        .run('SUPERADMIN', superadminPassword, 'System Super Administrator');
+    db.prepare('INSERT OR IGNORE INTO academic_config (key, value) VALUES (?, ?)').run('academic_year', '2026-2027');
+    db.prepare('INSERT OR IGNORE INTO academic_config (key, value) VALUES (?, ?)').run('current_semester', '1');
+    db.prepare('INSERT OR IGNORE INTO academic_config (key, value) VALUES (?, ?)').run('attendance_edit_window_hours', '24');
+    db.prepare('INSERT OR IGNORE INTO departments (name, code) VALUES (?, ?)').run('Computer Science', 'CSE');
     // 1. ALWAYS RUN SUBJECT INSERTS FIRST (Runs even if users are already seeded)
     try {
         const insertSubject = db.prepare('INSERT OR IGNORE INTO subjects (code, name, faculty_id, section, year, department, target_attendance) VALUES (?, ?, ?, ?, ?, ?, ?)');

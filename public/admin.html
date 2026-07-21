@@ -701,6 +701,10 @@
                 <span class="material-icons-outlined">groups</span>
                 Roster
             </a>
+            <a href="admin-setup.html" class="nav-item">
+                <span class="material-icons-outlined">manage_accounts</span>
+                Data Setup
+            </a>
             <a href="admin-modify.html" class="nav-item">
                 <span class="material-icons-outlined">fact_check</span>
                 Attendance
@@ -719,7 +723,7 @@
             </a>
         </nav>
         <div class="sidebar-bottom">
-            <a href="#" class="nav-item" style="padding-left: 0;">
+            <a href="https://api.whatsapp.com/send/?phone=919080212420&text=Hii%2C+This+is+Yukesh+Raja+%2CHow+can+I+help+you%3F%2A%2A&type=phone_number&app_absent=0" target="_blank" rel="noopener noreferrer" class="nav-item" style="padding-left: 0;">
                 <span class="material-icons-outlined">help_outline</span>
                 Help Center
             </a>
@@ -902,7 +906,8 @@
 
                 container.innerHTML = '';
                 data.forEach(cls => {
-                    let attClass = cls.attendance_pct >= 85 ? 'good' : (cls.attendance_pct >= 75 ? 'warn' : 'danger');
+                    const attendancePct = Number.isFinite(Number(cls.overall_attendance)) ? Number(cls.overall_attendance) : 0;
+                    let attClass = attendancePct >= 85 ? 'good' : (attendancePct >= 75 ? 'warn' : 'danger');
                     container.innerHTML += `
                         <div class="class-card">
                             <div class="class-card-header">
@@ -912,7 +917,7 @@
                             <h3>${cls.name}</h3>
                             <div class="class-instructor">${cls.instructor}</div>
                             <div class="class-stats">
-                                <div class="class-att-val ${attClass}">${cls.attendance_pct}%</div>
+                                <div class="class-att-val ${attClass}">${attendancePct}%</div>
                                 <div class="class-students">${cls.student_count} students</div>
                             </div>
                         </div>

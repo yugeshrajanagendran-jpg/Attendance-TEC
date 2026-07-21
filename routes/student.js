@@ -62,7 +62,8 @@ module.exports = function(db) {
             const subjects = db.prepare(`
                 SELECT s.id, s.code, s.name, s.target_attendance,
                     COUNT(a.id) as total_classes,
-                    COUNT(CASE WHEN a.status = 'P' THEN 1 END) as present,
+                    COUNT(CASE WHEN a.status IN ('P', 'OD') THEN 1 END) as present,
+                    COUNT(CASE WHEN a.status = 'L' THEN 1 END) as late,
                     COUNT(CASE WHEN a.status = 'A' THEN 1 END) as absent
                 FROM enrollments e
                 JOIN subjects s ON e.subject_id = s.id
@@ -73,7 +74,7 @@ module.exports = function(db) {
 
             const result = subjects.map(sub => ({
                 ...sub,
-                percentage: sub.total_classes > 0 ? ((sub.present / sub.total_classes) * 100).toFixed(2) : 0
+                percentage: sub.total_classes > 0 ? (((sub.present + sub.late * 0.5) / sub.total_classes) * 100).toFixed(2) : 0
             }));
             res.json(result);
         } catch (error) {

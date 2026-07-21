@@ -4,13 +4,38 @@ const path = require('path');
 function initDB() {
     const dbPath = path.join(__dirname, '..', 'attendance.db');
     const db = new Database(dbPath);
+    db.pragma('foreign_keys = ON');
+
+    // SQLite cannot alter a CHECK constraint. Upgrade legacy databases before
+    // creating/using superadmin accounts while retaining all existing rows.
+    const usersSql = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'").get();
+    if (usersSql && !usersSql.sql.includes("'superadmin'")) {
+        db.pragma('foreign_keys = OFF');
+        db.exec(`
+            CREATE TABLE users_upgrade (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                role TEXT NOT NULL CHECK(role IN ('student', 'faculty', 'admin', 'superadmin')),
+                name TEXT NOT NULL,
+                email TEXT,
+                phone TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            INSERT INTO users_upgrade (id, username, password, role, name, email, phone, created_at)
+            SELECT id, username, password, role, name, email, phone, created_at FROM users;
+            DROP TABLE users;
+            ALTER TABLE users_upgrade RENAME TO users;
+        `);
+        db.pragma('foreign_keys = ON');
+    }
 
     db.exec(`
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
-            role TEXT NOT NULL CHECK(role IN ('student', 'faculty', 'admin')),
+            role TEXT NOT NULL CHECK(role IN ('student', 'faculty', 'admin', 'superadmin')),
             name TEXT NOT NULL,
             email TEXT,
             phone TEXT,
@@ -120,12 +145,59 @@ function initDB() {
             read INTEGER DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS departments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            code TEXT NOT NULL UNIQUE,
+            hod_id INTEGER REFERENCES faculty(id) ON DELETE SET NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS sections (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            department_id INTEGER REFERENCES departments(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            year INTEGER NOT NULL,
+            semester INTEGER NOT NULL,
+            faculty_advisor_id INTEGER REFERENCES faculty(id) ON DELETE SET NULL,
+            UNIQUE(department_id, name, year, semester)
+        );
+        CREATE TABLE IF NOT EXISTS academic_config (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT NOT NULL UNIQUE,
+            value TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS login_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+            login_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            ip_address TEXT,
+            user_agent TEXT
+        );
+        CREATE TABLE IF NOT EXISTS attendance_corrections (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            attendance_id INTEGER NOT NULL REFERENCES attendance(id) ON DELETE CASCADE,
+            requested_by INTEGER NOT NULL REFERENCES users(id),
+            old_status TEXT NOT NULL,
+            new_status TEXT NOT NULL CHECK(new_status IN ('P', 'A', 'L', 'OD', 'ML')),
+            reason TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING', 'APPROVED', 'REJECTED')),
+            reviewed_by INTEGER REFERENCES users(id),
+            reviewed_at DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     `);
 
-    // Runtime migration: ensure phone column exists in users (for existing DBs)
-    try {
-        db.exec('ALTER TABLE users ADD COLUMN phone TEXT');
-    } catch(e) { /* column already exists, ignore */ }
+    // Safe, idempotent migrations for existing installations.
+    const migrations = [
+        'ALTER TABLE users ADD COLUMN phone TEXT',
+        'ALTER TABLE students ADD COLUMN faculty_advisor_id INTEGER REFERENCES faculty(id)',
+        'ALTER TABLE subjects ADD COLUMN max_marks INTEGER DEFAULT 100',
+        'ALTER TABLE assignment_tracking ADD COLUMN marks INTEGER'
+    ];
+    for (const sql of migrations) {
+        try { db.exec(sql); } catch (e) { /* already applied */ }
+    }
 
     return db;
 }

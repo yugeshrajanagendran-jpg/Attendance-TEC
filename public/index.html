@@ -174,6 +174,9 @@
                 <div class="tab" data-target="admin">
                     <span class="material-icons-outlined">settings</span> HOD/Admin
                 </div>
+                <div class="tab" data-target="superadmin">
+                    <span class="material-icons-outlined">security</span> Super Admin
+                </div>
             </div>
 
             <!-- Student Form -->
@@ -280,12 +283,21 @@
                     <div class="error-message" id="admin-error"></div>
                 </form>
             </div>
+            <div class="tab-content" id="superadmin-content">
+                <div class="header"><h2>Super Admin Login</h2><p>System-wide administration and configuration.</p></div>
+                <form id="superadmin-form" onsubmit="handleLogin(event, 'superadmin')">
+                    <div class="form-group"><label>Super Admin ID</label><div class="input-wrapper"><span class="material-icons-outlined">security</span><input type="text" class="form-control" name="username" required></div></div>
+                    <div class="form-group"><label>Password</label><div class="input-wrapper"><span class="material-icons-outlined">lock</span><input type="password" class="form-control" name="password" required><span class="material-icons-outlined toggle-pwd" onclick="togglePassword(this)">visibility_off</span></div></div>
+                    <button type="submit" class="btn-submit" id="superadmin-btn">Authenticate <span class="material-icons-outlined">arrow_forward</span></button>
+                    <div class="error-message" id="superadmin-error"></div>
+                </form>
+            </div>
         </div>
 
         <div class="footer">
             <div>© 2024 Attendance @TEC v4.2</div>
             <div class="footer-links">
-                <a href="#">Help Center</a>
+                <a href="https://api.whatsapp.com/send/?phone=919080212420&text=Hii%2C+This+is+Yukesh+Raja+%2CHow+can+I+help+you%3F%2A%2A&type=phone_number&app_absent=0" target="_blank" rel="noopener noreferrer">Help Center</a>
                 <a href="#">Privacy</a>
             </div>
         </div>
@@ -342,25 +354,17 @@
                 if (data.success) {
                     if (data.user.role === 'student') window.location.href = '/student.html';
                     else if (data.user.role === 'faculty') window.location.href = '/faculty.html';
-                    else window.location.href = '/admin.html';
+                    else if (data.user.role === 'admin') window.location.href = '/admin.html';
+                    else window.location.href = '/superadmin.html';
                 } else {
                     errorDiv.textContent = data.message || 'Authentication failed. Please check your credentials.';
                     btn.disabled = false;
                     btn.innerHTML = origContent;
                 }
             } catch (err) {
-                // Mock behavior for UI demonstration
-                setTimeout(() => {
-                    if (username && password) {
-                        if (role === 'student') window.location.href = '/student.html';
-                        else if (role === 'faculty') window.location.href = '/faculty.html';
-                        else window.location.href = '/admin.html';
-                    } else {
-                        errorDiv.textContent = 'Network error. Please try again later.';
-                        btn.disabled = false;
-                        btn.innerHTML = origContent;
-                    }
-                }, 1000);
+                errorDiv.textContent = 'Network error. Please try again later.';
+                btn.disabled = false;
+                btn.innerHTML = origContent;
             }
         }
     </script>

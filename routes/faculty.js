@@ -10,6 +10,17 @@ module.exports = function(db) {
         const fac = db.prepare('SELECT id FROM faculty WHERE user_id = ?').get(userId);
         return fac ? fac.id : null;
     };
+    const ownsSubject = (userId, subjectId) => {
+        const facultyId = getFacId(userId);
+        return facultyId && db.prepare('SELECT id FROM subjects WHERE id = ? AND faculty_id = ?').get(subjectId, facultyId);
+    };
+    const requireOwnedSubject = (req, res, subjectId) => {
+        if (!subjectId || !ownsSubject(req.session.user.id, subjectId)) {
+            res.status(403).json({ error: 'You are not assigned to this subject' });
+            return false;
+        }
+        return true;
+    };
 
     router.get('/subjects', (req, res) => {
         try {
@@ -24,6 +35,7 @@ module.exports = function(db) {
     router.get('/students', (req, res) => {
         try {
             const { subject_id } = req.query;
+            if (!requireOwnedSubject(req, res, subject_id)) return;
             const students = db.prepare(`
                 SELECT s.* FROM students s
                 JOIN enrollments e ON e.student_id = s.id
@@ -39,6 +51,7 @@ module.exports = function(db) {
     router.get('/attendance', (req, res) => {
         try {
             const { subject_id, date, hour } = req.query;
+            if (!requireOwnedSubject(req, res, subject_id)) return;
             const records = db.prepare(`
                 SELECT student_id, status FROM attendance
                 WHERE subject_id = ? AND date = ? AND hour = ?
@@ -53,6 +66,10 @@ module.exports = function(db) {
         try {
             const { subject_id, date, hour, records } = req.body;
             if (!subject_id || !date || !records) return res.status(400).json({ error: 'Missing data' });
+            if (!Array.isArray(records) || !requireOwnedSubject(req, res, subject_id)) return;
+            if (records.some(r => !Number(r.student_id) || !['P', 'A', 'L', 'OD', 'ML'].includes(r.status))) return res.status(400).json({ error: 'Invalid attendance records' });
+            const enrolled = new Set(db.prepare('SELECT student_id FROM enrollments WHERE subject_id = ?').all(subject_id).map(row => row.student_id));
+            if (records.some(r => !enrolled.has(Number(r.student_id)))) return res.status(400).json({ error: 'All students must be enrolled in this subject' });
 
             const insert = db.prepare(`
                 INSERT INTO attendance (student_id, subject_id, date, hour, status, marked_by)
@@ -78,6 +95,7 @@ module.exports = function(db) {
     router.post('/attendance/mark-all-present', (req, res) => {
         try {
             const { subject_id, date, hour } = req.body;
+            if (!requireOwnedSubject(req, res, subject_id)) return;
             const students = db.prepare('SELECT student_id FROM enrollments WHERE subject_id = ?').all(subject_id);
             
             const insert = db.prepare(`
@@ -103,6 +121,7 @@ module.exports = function(db) {
     router.get('/export', async (req, res) => {
         try {
             const { subject_id, date, hour } = req.query;
+            if (!requireOwnedSubject(req, res, subject_id)) return;
             const subject = db.prepare('SELECT * FROM subjects WHERE id = ?').get(subject_id);
             const records = db.prepare(`
                 SELECT st.reg_no, st.name as student_name, st.section, a.status, a.marked_at
@@ -186,6 +205,7 @@ module.exports = function(db) {
         try {
             const { subject_id, title, description } = req.body;
             const facId = getFacId(req.session.user.id);
+            if (!title || !requireOwnedSubject(req, res, subject_id)) return;
             
             const result = db.prepare('INSERT INTO assignments (subject_id, title, description, created_by) VALUES (?, ?, ?, ?)').run(subject_id, title, description, facId);
             const assignmentId = result.lastInsertRowid;
@@ -208,12 +228,61 @@ module.exports = function(db) {
     router.put('/assignments/:id/track', (req, res) => {
         try {
             const { student_id, status } = req.body;
+            const assignment = db.prepare('SELECT subject_id FROM assignments WHERE id = ?').get(req.params.id);
+            if (!assignment || !['PENDING', 'COMPLETED'].includes(status) || !requireOwnedSubject(req, res, assignment.subject_id)) return;
             db.prepare('UPDATE assignment_tracking SET status = ?, marked_by = ? WHERE assignment_id = ? AND student_id = ?')
               .run(status, req.session.user.id, req.params.id, student_id);
             res.json({ message: 'Status updated' });
         } catch (error) {
             res.status(500).json({ error: 'Server error' });
         }
+    });
+
+    router.put('/assignments/:id/marks', (req, res) => {
+        try {
+            const { student_id, marks } = req.body;
+            const assignment = db.prepare('SELECT subject_id FROM assignments WHERE id = ?').get(req.params.id);
+            if (!assignment || !requireOwnedSubject(req, res, assignment.subject_id)) return;
+            const numericMarks = Number(marks);
+            if (!Number.isFinite(numericMarks) || numericMarks < 0) return res.status(400).json({ error: 'Marks must be a non-negative number' });
+            db.prepare('UPDATE assignment_tracking SET marks = ?, marked_by = ?, marked_at = CURRENT_TIMESTAMP WHERE assignment_id = ? AND student_id = ?')
+                .run(numericMarks, req.session.user.id, req.params.id, student_id);
+            res.json({ message: 'Marks saved' });
+        } catch (error) { res.status(500).json({ error: 'Server error' }); }
+    });
+
+    router.get('/assignments/:id/marks', (req, res) => {
+        try {
+            const assignment = db.prepare('SELECT subject_id FROM assignments WHERE id = ?').get(req.params.id);
+            if (!assignment || !requireOwnedSubject(req, res, assignment.subject_id)) return;
+            res.json(db.prepare(`SELECT t.student_id, st.reg_no, st.name, t.status, t.marks
+                FROM assignment_tracking t JOIN students st ON st.id=t.student_id WHERE t.assignment_id=? ORDER BY st.reg_no`).all(req.params.id));
+        } catch (error) { res.status(500).json({ error: 'Server error' }); }
+    });
+
+    router.put('/attendance/:id', (req, res) => {
+        try {
+            const { status } = req.body;
+            const record = db.prepare('SELECT a.*, s.faculty_id FROM attendance a JOIN subjects s ON s.id=a.subject_id WHERE a.id=?').get(req.params.id);
+            if (!record || !requireOwnedSubject(req, res, record.subject_id)) return;
+            if (!['P', 'A', 'L', 'OD', 'ML'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
+            const windowHours = Number((db.prepare("SELECT value FROM academic_config WHERE key='attendance_edit_window_hours'").get() || {}).value || 24);
+            if ((Date.now() - new Date(record.marked_at + 'Z').getTime()) > windowHours * 3600000) return res.status(403).json({ error: 'Edit window has expired; submit a correction request' });
+            db.prepare('UPDATE attendance SET status=?, modified_by=?, modified_at=CURRENT_TIMESTAMP WHERE id=?').run(status, req.session.user.id, record.id);
+            res.json({ message: 'Attendance updated' });
+        } catch (error) { res.status(500).json({ error: 'Server error' }); }
+    });
+
+    router.post('/attendance/correction', (req, res) => {
+        try {
+            const { attendance_id, new_status, reason } = req.body;
+            const record = db.prepare('SELECT * FROM attendance WHERE id=?').get(attendance_id);
+            if (!record || !requireOwnedSubject(req, res, record.subject_id)) return;
+            if (!['P', 'A', 'L', 'OD', 'ML'].includes(new_status) || !reason) return res.status(400).json({ error: 'A valid status and reason are required' });
+            db.prepare('INSERT INTO attendance_corrections (attendance_id, requested_by, old_status, new_status, reason) VALUES (?, ?, ?, ?, ?)')
+                .run(record.id, req.session.user.id, record.status, new_status, reason);
+            res.status(201).json({ message: 'Correction request submitted' });
+        } catch (error) { res.status(500).json({ error: 'Server error' }); }
     });
 
     router.get('/today', (req, res) => {

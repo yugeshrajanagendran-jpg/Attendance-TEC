@@ -596,7 +596,7 @@
             </a>
         </nav>
         <div class="sidebar-bottom">
-            <a href="#" class="nav-item" style="padding-left: 0;">
+            <a href="https://api.whatsapp.com/send/?phone=919080212420&text=Hii%2C+This+is+Yukesh+Raja+%2CHow+can+I+help+you%3F%2A%2A&type=phone_number&app_absent=0" target="_blank" rel="noopener noreferrer" class="nav-item" style="padding-left: 0;">
                 <span class="material-icons-outlined">help_outline</span> Help Center
             </a>
             <a href="#" class="logout-btn" onclick="logout(event)">
@@ -782,7 +782,7 @@
                 if(res.ok) {
                     const subjects = await res.json();
                     subjects.forEach(s => {
-                        select.innerHTML += `<option value="\${s.id}">\${s.name}</option>`;
+                        select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
                     });
                 }
             } catch(e) {}
@@ -799,12 +799,12 @@
 
             try {
                 const params = new URLSearchParams();
-                if (query) params.set('query', query);
+                if (query) params.set('student', query);
                 if (subject_id) params.set('subject_id', subject_id);
                 if (date_from) params.set('date_from', date_from);
                 if (date_to) params.set('date_to', date_to);
 
-                const res = await fetch(`/api/admin/attendance/search?\${params}`);
+                const res = await fetch(`/api/admin/attendance/search?${params}`);
                 if(!res.ok) throw new Error();
                 const data = await res.json();
 
@@ -827,14 +827,14 @@
             records.forEach(r => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="font-weight: 500;">\${r.reg_no}</td>
-                    <td>\${r.student_name}</td>
-                    <td>\${r.subject_name}</td>
-                    <td>\${r.date}, Hr \${r.hour}</td>
-                    <td><span class="status-badge \${r.status}">\${STATUS_MAP[r.status] || r.status}</span></td>
-                    <td style="color: var(--text-muted); font-size: 13px;">\${r.modified_by || '--'}</td>
+                    <td style="font-weight: 500;">${r.reg_no}</td>
+                    <td>${r.student_name}</td>
+                    <td>${r.subject_name}</td>
+                    <td>${r.date}, Hr ${r.hour}</td>
+                    <td><span class="status-badge ${r.status}">${STATUS_MAP[r.status] || r.status}</span></td>
+                    <td style="color: var(--text-muted); font-size: 13px;">${r.modified_by || '--'}</td>
                     <td>
-                        <button class="btn btn-outline btn-sm" onclick="openModal(\${r.id})">
+                        <button class="btn btn-outline btn-sm" onclick="openModal(${r.id})">
                             <span class="material-icons-outlined" style="font-size: 16px;">edit</span> Edit
                         </button>
                     </td>
@@ -856,12 +856,12 @@
             if (!record) return;
             
             editingId = id;
-            document.getElementById('m-name').textContent = `\${record.student_name} (\${record.reg_no})`;
+            document.getElementById('m-name').textContent = `${record.student_name} (${record.reg_no})`;
             document.getElementById('m-subject').textContent = record.subject_name;
-            document.getElementById('m-date').textContent = `\${record.date}, Hr \${record.hour}`;
+            document.getElementById('m-date').textContent = `${record.date}, Hr ${record.hour}`;
             
             const currBadge = document.getElementById('m-curr-status');
-            currBadge.className = `status-badge \${record.status}`;
+            currBadge.className = `status-badge ${record.status}`;
             currBadge.textContent = STATUS_MAP[record.status];
 
             const radios = document.getElementsByName('newStatus');
@@ -892,7 +892,7 @@
             }
 
             try {
-                const res = await fetch(`/api/admin/attendance/\${editingId}`, {
+                const res = await fetch(`/api/admin/attendance/${editingId}`, {
                     method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ status: newStatus, reason: reason })
@@ -921,7 +921,7 @@
             const toast = document.createElement('div');
             toast.className = 'toast';
             const icon = type === 'error' ? 'error' : 'check_circle';
-            toast.innerHTML = `<span class="material-icons-outlined">\${icon}</span> \${message}`;
+            toast.innerHTML = `<span class="material-icons-outlined">${icon}</span> ${message}`;
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => {

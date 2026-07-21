@@ -300,11 +300,13 @@ module.exports = function(db) {
         try {
             const { student, date_from, date_to, subject_id } = req.query;
             let query = `
-                SELECT a.id, st.name as student_name, s.name as subject, a.date, a.status, u.name as marked_by
+                SELECT a.id, st.reg_no, st.name as student_name, s.name as subject_name, a.date, a.hour, a.status,
+                    COALESCE(mu.name, u.name) as modified_by
                 FROM attendance a
                 JOIN students st ON a.student_id = st.id
                 JOIN subjects s ON a.subject_id = s.id
                 LEFT JOIN users u ON a.marked_by = u.id
+                LEFT JOIN users mu ON a.modified_by = mu.id
                 WHERE 1=1
             `;
             const params = [];
@@ -372,6 +374,32 @@ module.exports = function(db) {
     router.get('/subjects', (req, res) => {
         res.json(db.prepare('SELECT id, name, code FROM subjects').all());
     });
+
+    // Department onboarding: these endpoints replace the old sample-only workflow.
+    router.get('/faculty', (req, res) => res.json(db.prepare('SELECT f.*, u.username, u.phone FROM faculty f JOIN users u ON u.id=f.user_id ORDER BY f.name').all()));
+    router.post('/faculty', (req, res) => {
+        const { faculty_id, name, email = null, phone = null, department = 'Computer Science', password = 'ChangeMe123!' } = req.body;
+        if (!faculty_id || !name) return res.status(400).json({ error: 'faculty_id and name are required' });
+        try { const create = db.transaction(() => {
+            const userId = db.prepare('INSERT INTO users (username,password,role,name,email,phone) VALUES (?,?,?,?,?,?)').run(faculty_id, bcrypt.hashSync(password, 12), 'faculty', name, email, phone).lastInsertRowid;
+            return db.prepare('INSERT INTO faculty (user_id,faculty_id,name,department,email) VALUES (?,?,?,?,?)').run(userId,faculty_id,name,department,email).lastInsertRowid;
+        }); res.status(201).json({ id: create(), message: 'Faculty added' }); } catch (error) { res.status(400).json({ error: error.message }); }
+    });
+    router.put('/faculty/:id', (req, res) => {
+        const { name, email, department, designation } = req.body;
+        try { const f = db.prepare('SELECT * FROM faculty WHERE id=?').get(req.params.id); if (!f) return res.status(404).json({ error: 'Faculty not found' }); db.transaction(() => { db.prepare('UPDATE faculty SET name=?,email=?,department=?,designation=? WHERE id=?').run(name ?? f.name,email ?? f.email,department ?? f.department,designation ?? f.designation,f.id); db.prepare('UPDATE users SET name=?,email=? WHERE id=?').run(name ?? f.name,email ?? f.email,f.user_id); })(); res.json({ message: 'Faculty updated' }); } catch (error) { res.status(400).json({ error: error.message }); }
+    });
+    router.get('/students/manage', (req, res) => res.json(db.prepare('SELECT s.*,u.username FROM students s JOIN users u ON u.id=s.user_id ORDER BY s.reg_no').all()));
+    router.post('/students', (req, res) => {
+        const { reg_no, name, email = null, phone = null, section = 'A', year = 1, department = 'Computer Science', password = 'ChangeMe123!' } = req.body;
+        if (!reg_no || !name) return res.status(400).json({ error: 'reg_no and name are required' });
+        try { const create = db.transaction(() => { const userId = db.prepare('INSERT INTO users (username,password,role,name,email,phone) VALUES (?,?,?,?,?,?)').run(reg_no,bcrypt.hashSync(password,12),'student',name,email,phone).lastInsertRowid; const studentId = db.prepare('INSERT INTO students (user_id,reg_no,name,section,year,department,email,phone) VALUES (?,?,?,?,?,?,?,?)').run(userId,reg_no,name,section,Number(year),department,email,phone).lastInsertRowid; db.prepare('INSERT OR IGNORE INTO enrollments (student_id,subject_id) SELECT ?,id FROM subjects WHERE section=? AND year=? AND department=?').run(studentId,section,Number(year),department); return studentId; }); res.status(201).json({ id:create(), message:'Student added' }); } catch (error) { res.status(400).json({ error:error.message }); }
+    });
+    router.put('/students/:id', (req, res) => { const { name,email,phone,section,year,department }=req.body; try { const s=db.prepare('SELECT * FROM students WHERE id=?').get(req.params.id); if(!s) return res.status(404).json({error:'Student not found'}); db.transaction(()=>{db.prepare('UPDATE students SET name=?,email=?,phone=?,section=?,year=?,department=? WHERE id=?').run(name??s.name,email??s.email,phone??s.phone,section??s.section,Number(year??s.year),department??s.department,s.id);db.prepare('UPDATE users SET name=?,email=?,phone=? WHERE id=?').run(name??s.name,email??s.email,phone??s.phone,s.user_id);})();res.json({message:'Student updated'}); } catch(error){res.status(400).json({error:error.message});} });
+    router.post('/subjects', (req,res) => { const { code,name,faculty_id,section='A',year=1,department='Computer Science',target_attendance=85,max_marks=100 }=req.body; if(!code||!name||!faculty_id) return res.status(400).json({error:'code, name and faculty_id are required'}); try{res.status(201).json({id:db.prepare('INSERT INTO subjects (code,name,faculty_id,section,year,department,target_attendance,max_marks) VALUES (?,?,?,?,?,?,?,?)').run(code,name,faculty_id,section,Number(year),department,Number(target_attendance),Number(max_marks)).lastInsertRowid});}catch(error){res.status(400).json({error:error.message});} });
+    router.get('/corrections', (req,res) => res.json(db.prepare(`SELECT c.*,u.name AS requested_by_name,a.date,a.hour,s.name AS subject FROM attendance_corrections c JOIN users u ON u.id=c.requested_by JOIN attendance a ON a.id=c.attendance_id JOIN subjects s ON s.id=a.subject_id WHERE c.status='PENDING' ORDER BY c.created_at`).all()));
+    router.put('/corrections/:id', (req,res) => { const { status }=req.body; if(!['APPROVED','REJECTED'].includes(status)) return res.status(400).json({error:'Invalid decision'}); try{const c=db.prepare('SELECT * FROM attendance_corrections WHERE id=? AND status=\'PENDING\'').get(req.params.id);if(!c)return res.status(404).json({error:'Correction not found'});db.transaction(()=>{if(status==='APPROVED')db.prepare('UPDATE attendance SET status=?,modified_by=?,modified_at=CURRENT_TIMESTAMP WHERE id=?').run(c.new_status,req.session.user.id,c.attendance_id);db.prepare('UPDATE attendance_corrections SET status=?,reviewed_by=?,reviewed_at=CURRENT_TIMESTAMP WHERE id=?').run(status,req.session.user.id,c.id);})();res.json({message:'Correction reviewed'});}catch(error){res.status(500).json({error:'Server error'});} });
+    router.post('/clear-sample-data', (req,res) => { if(req.body.confirmation !== 'REMOVE SAMPLE DATA') return res.status(400).json({error:'Enter REMOVE SAMPLE DATA to confirm'}); try{db.transaction(()=>{for(const table of ['attendance_corrections','attendance','assignment_tracking','assignments','enrollments','timetable','leaves','notifications','sections','subjects'])db.prepare(`DELETE FROM ${table}`).run();db.prepare('DELETE FROM students').run();db.prepare('DELETE FROM faculty').run();db.prepare("DELETE FROM users WHERE role NOT IN ('admin','superadmin')").run();})();res.json({message:'Sample data cleared. Add your institution records now.'});}catch(error){res.status(500).json({error:error.message});} });
 
     return router;
 };
